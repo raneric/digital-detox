@@ -7,8 +7,8 @@
   </head>
   <body>
     <header>
-      <h1>Digital Detox</h1>
-      <button id="reset-all" class="ghost" title="Clear all recorded usage">
+      <h1><span class="logo">🛡️</span> Digital Detox</h1>
+      <button id="reset-all" class="ghost danger-ghost" title="Clear all recorded usage">
         Reset usage
       </button>
     </header>
@@ -16,6 +16,10 @@
     <p class="hint">Daily time limit per site, in minutes. 0 = no limit.</p>
 
     <ul id="site-list" aria-label="Configured sites"></ul>
+
+    <p id="empty-state" class="hint empty" hidden>
+      No sites yet. Add one below to start tracking.
+    </p>
 
     <form id="add-form">
       <input
@@ -33,24 +37,49 @@
         max="1440"
         value="30"
         required
+        title="Limit in minutes"
       />
-      <button type="submit" class="primary">Add site</button>
+      <button type="submit" class="primary">Add</button>
     </form>
+
+    <footer class="options-link">
+      <!-- Only visible in popup mode: destructive actions live in the options page. -->
+      <a href="popup.html?view=options" id="open-options" target="_blank"
+        >Manage / reset sites ↗</a
+      >
+      <span id="options-badge">Options page</span>
+    </footer>
 
     <template id="site-row">
       <li class="site-row">
-        <label class="site-name"></label>
-        <div class="controls">
+        <div class="row-top">
+          <label class="site-name"></label>
           <span class="usage"></span>
-          <input class="limit" type="number" min="0" max="1440" />
-          <span class="unit"> min</span>
-          <button class="reset ghost" title="Reset today's usage for this site">
-            ↺
+        </div>
+        <div class="progress" role="presentation">
+          <div class="progress-fill"></div>
+        </div>
+        <div class="controls">
+          <!-- Popup mode: limit is read-only info. Options mode: editable. -->
+          <span class="limit-label"></span>
+          <input class="limit" type="number" min="0" max="1440" aria-label="Limit in minutes" />
+          <span class="unit">min / day</span>
+          <span class="spacer"></span>
+          <button class="reset ghost danger-ghost" title="Reset today's usage for this site">
+            ↺ Reset
           </button>
-          <button class="remove ghost" title="Remove this site">✕</button>
+          <button class="remove ghost danger-ghost" title="Remove this site">✕ Remove</button>
         </div>
       </li>
     </template>
+
+    <dialog id="confirm-dialog">
+      <p class="dialog-text"></p>
+      <div class="dialog-actions">
+        <button class="confirm-no">Cancel</button>
+        <button class="confirm-yes primary">Yes, do it</button>
+      </div>
+    </dialog>
 
     <script src="popup.js" type="module"></script>
   </body>

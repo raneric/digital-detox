@@ -7,16 +7,46 @@ import { repository } from './repository.js';
 import { UsageTracker } from './usage-tracker.js';
 import { SiteBlocker } from './site-blocker.js';
 import { LimitPolicy } from './limit-policy.js';
+import { DomainMatcher } from './domain-matcher.js';
 import { FLUSH_INTERVAL_MINUTES } from './config.js';
 
 const blocker = new SiteBlocker();
 
 /** Keeps DNR rules in lockstep with over-limit domains. */
 async function syncBlocking() {
-  await blocker.sync(await tracker.overLimitDomains());
+  const overLimit = await tracker.overLimitDomains();
+  await blocker.sync(overLimit);
+  await redirectOpenTabs(overLimit);
+}
+
+/**
+ * DNR rules only apply to *new* main-frame navigations, so tabs already
+ * sitting on an over-limit site would stay usable. Actively redirect them.
+ * @param {Iterable<string>} overLimitDomains
+ */
+async function redirectOpenTabs(overLimitDomains) {
+  const targets = new Set(overLimitDomains);
+  if (targets.size === 0) return;
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(
+    tabs
+      .filter((tab) => {
+        if (!tab.url) return false;
+        const domain = DomainMatcher.extractBaseDomain(tab.url);
+        return domain !== null && targets.has(domain);
+      })
+      .map((tab) =>
+        chrome.tabs.update(tab.id, {
+          url: SiteBlocker.blockedUrlFor(
+            /** @type {string} */ (DomainMatcher.extractBaseDomain(tab.url)),
+          ),
+        }),
+      ),
+  );
 }
 
 const tracker = new UsageTracker(repository, () => syncBlocking());
+tracker.start();
 
 /**
  * Recomputes blocking for every managed site from persisted state.

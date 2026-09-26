@@ -28,7 +28,7 @@
     "48": "src/assets/icon48.png",
     "128": "src/assets/icon128.png"
   },
-  "options_page": "src/popup/popup.html",
+  "options_page": "src/popup/popup.html?view=options",
   "declarative_net_request": {
     "rule_resources": []
   }

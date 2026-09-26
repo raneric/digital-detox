@@ -1,6 +1,13 @@
 /**
  * Popup controller. Talks to the service worker exclusively through
- * messages (separation of concerns), and renders from state.
+ * messages (separation of concerns) and renders from state.
+ *
+ * The same page serves two modes:
+ *  - popup mode (default): view usage and adjust limits only - no
+ *    reset or delete buttons rendered, to reduce temptation.
+ *  - options mode (?view=options, opened in a tab via the footer link):
+ *    destructive actions (reset usage / remove site) are available,
+ *    each behind a confirmation dialog.
  */
 
 /**
@@ -24,9 +31,41 @@ class BackgroundClient {
   }
 }
 
+const IS_OPTIONS_MODE =
+  new URLSearchParams(location.search).get("view") === "options";
+
 const listEl = document.getElementById("site-list");
 const rowTemplate = document.getElementById("site-row");
 const addForm = document.getElementById("add-form");
+const emptyEl = document.getElementById("empty-state");
+const confirmDialog = document.getElementById("confirm-dialog");
+
+if (IS_OPTIONS_MODE) {
+  document.body.classList.add("options-mode");
+}
+
+/** Browser-style confirmation via <dialog>. Resolves true when accepted. */
+function confirmAction(message) {
+  return new Promise((resolve) => {
+    confirmDialog.querySelector(".dialog-text").textContent = message;
+    const yes = confirmDialog.querySelector(".confirm-yes");
+    const no = confirmDialog.querySelector(".confirm-no");
+    const done = (result) => {
+      confirmDialog.close();
+      yes.removeEventListener("click", onYes);
+      no.removeEventListener("click", onNo);
+      confirmDialog.removeEventListener("close", onClose);
+      resolve(result);
+    };
+    const onYes = () => done(true);
+    const onNo = () => done(false);
+    const onClose = () => done(false); // Esc key
+    yes.addEventListener("click", onYes);
+    no.addEventListener("click", onNo);
+    confirmDialog.addEventListener("close", onClose);
+    confirmDialog.showModal();
+  });
+}
 
 /** One row of UI bound to one site entry. */
 class SiteRow {
@@ -43,19 +82,29 @@ class SiteRow {
     this.overLimit = SiteRow.isOverLimit(site, usage);
 
     this.root = rowTemplate.content.cloneNode(true);
-    this.nameEl = this.root.querySelector(".site-name");
-    this.usageEl = this.root.querySelector(".usage");
-    this.limitEl = this.root.querySelector(".limit");
+    const nameEl = this.root.querySelector(".site-name");
+    const usageEl = this.root.querySelector(".usage");
+    const fillEl = this.root.querySelector(".progress-fill");
+    const limitEl = this.root.querySelector(".limit");
+    const limitLabelEl = this.root.querySelector(".limit-label");
 
-    this.nameEl.textContent = site.domain;
-    this.nameEl.classList.toggle("over-limit", this.overLimit);
-    this.limitEl.value = String(site.limitMinutes);
-    this.usageEl.textContent = SiteRow.formatUsage(usage, site, this.overLimit);
+    nameEl.textContent = site.domain;
+    nameEl.classList.toggle("over-limit", this.overLimit);
+    limitEl.value = String(site.limitMinutes);
+    limitLabelEl.textContent =
+      (site.limitMinutes ? site.limitMinutes + " min / day" : "unlimited");
+    usageEl.textContent = SiteRow.formatUsage(usage, site, this.overLimit);
+    usageEl.classList.toggle("over-limit", this.overLimit);
 
-    this.limitEl.addEventListener("change", () => {
+    const ratio = SiteRow.progressRatio(site, usage);
+    fillEl.style.width = `${Math.round(ratio * 100)}%`;
+    fillEl.classList.toggle("warn", ratio >= 0.7 && ratio < 1);
+    fillEl.classList.toggle("over", ratio >= 1);
+
+    limitEl.addEventListener("change", () => {
       onChange({
         ...site,
-        limitMinutes: Math.max(0, Number(this.limitEl.value) || 0),
+        limitMinutes: Math.max(0, Number(limitEl.value) || 0),
       });
     });
     this.root.querySelector(".remove").addEventListener("click", onRemove);
@@ -83,21 +132,39 @@ class SiteRow {
     return usage.date === key && usage.secondsUsed >= site.limitMinutes * 60;
   }
 
+  /** @returns {number} fraction of the daily limit consumed, 0..1+ */
+  static progressRatio(site, usage) {
+    if (!site.enabled || site.limitMinutes <= 0) return 0;
+    const secondsToday = usage && usage.date === SiteRow.todayKey() ? usage.secondsUsed : 0;
+    return secondsToday / (site.limitMinutes * 60);
+  }
+
+  static todayKey() {
+    const t = new Date();
+    return [
+      t.getFullYear(),
+      String(t.getMonth() + 1).padStart(2, "0"),
+      String(t.getDate()).padStart(2, "0"),
+    ].join("-");
+  }
+
   static formatUsage(usage, site, overLimit) {
-    const mins = usage?.secondsUsed ? Math.floor(usage.secondsUsed / 60) : 0;
-    if (overLimit) return `used ${mins} m — blocked until tomorrow`;
-    return `${mins} m used of ${site.limitMinutes || "∞"}`;
+    const mins = usage && usage.secondsUsed ? Math.floor(usage.secondsUsed / 60) : 0;
+    if (overLimit) return "used " + mins + " m - blocked until tomorrow";
+    return mins + " m used of " + (site.limitMinutes || "unlimited");
   }
 }
 
 /** Loads state and renders the site list. */
 async function render() {
   const { settings, usage } = await BackgroundClient.getState();
+  const sites = Object.values(settings.sites);
+  emptyEl.hidden = sites.length > 0;
   listEl.replaceChildren(
-    ...Object.values(settings.sites).map((site) => {
-      const row = new SiteRow(site, usage[site.domain] ?? null, {
+    ...sites.map((site) => {
+      const row = new SiteRow(site, usage[site.domain] || null, {
         onChange: (updated) => persist(updated),
-        onRemove: () => remove(site.domain),
+        onRemove: () => removeSite(site.domain),
         onReset: () => resetOne(site.domain),
       });
       return row.render();
@@ -107,7 +174,7 @@ async function render() {
 
 /**
  * Updates one site entry and saves. A site that is removed from the
- * settings can no longer accrue usage — its usage record is dropped too.
+ * settings can no longer accrue usage - its usage record is dropped too.
  * @param {import('../background/repository.js').SiteLimit} site
  */
 async function persist(site) {
@@ -117,7 +184,13 @@ async function persist(site) {
 }
 
 /** @param {string} domain */
-async function remove(domain) {
+async function removeSite(domain) {
+  if (IS_OPTIONS_MODE) {
+    const ok = await confirmAction(
+      'Remove "' + domain + '"? Its usage history will be deleted too.'
+    );
+    if (!ok) return;
+  }
   const { settings } = await BackgroundClient.getState();
   delete settings.sites[domain];
   await BackgroundClient.saveSettings(settings);
@@ -126,20 +199,23 @@ async function remove(domain) {
 
 /** @param {string} [domain] */
 async function resetOne(domain) {
+  if (IS_OPTIONS_MODE) {
+    const ok = await confirmAction(
+      "Reset today's usage" +
+        (domain ? ' for "' + domain + '"?' : " for ALL sites?")
+    );
+    if (!ok) return;
+  }
   await BackgroundClient.resetUsage(domain);
   await render();
 }
 
 addForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const domain = document
-    .getElementById("new-domain")
-    .value.trim()
-    .toLowerCase();
-  const limitMinutes = Math.max(
-    0,
-    Number(document.getElementById("new-limit").value) || 0
-  );
+  const domainInput = document.getElementById("new-domain");
+  const limitInput = document.getElementById("new-limit");
+  const domain = domainInput.value.trim().toLowerCase();
+  const limitMinutes = Math.max(0, Number(limitInput.value) || 0);
   const { settings } = await BackgroundClient.getState();
   if (settings.sites[domain]) {
     settings.sites[domain].limitMinutes = limitMinutes;
@@ -148,13 +224,10 @@ addForm.addEventListener("submit", async (event) => {
   }
   await BackgroundClient.saveSettings(settings);
   addForm.reset();
-  document.getElementById("new-limit").value = "30";
+  limitInput.value = "30";
   await render();
 });
 
-document.getElementById("reset-all").addEventListener("click", async () => {
-  await BackgroundClient.resetUsage();
-  await render();
-});
+document.getElementById("reset-all").addEventListener("click", () => resetOne());
 
 render();

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c \"import json; json.load\\(open\\('manifest.json'\\)\\); print\\('manifest OK'\\)\")"
+      "Bash(python3 -c \"import json; json.load\\(open\\('manifest.json'\\)\\); print\\('manifest OK'\\)\")",
+      "Bash(node --check src/background/main.js)",
+      "Bash(node --check src/background/usage-tracker.js)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('manifest.json'\\)\\)\")",
+      "Bash(node --check src/popup/popup.js)"
     ]
   }
 }
