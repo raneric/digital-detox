@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Site blocked — Digital Detox</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --fg: #1c1e21;
+      --muted: #65676b;
+      --accent: #1877f2;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e4e6eb;
+        --muted: #b0b3b8;
+        --accent: #4599ff;
+      }
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font: 16px/1.6 system-ui, sans-serif;
+      color: var(--fg);
+      background: transparent;
+    }
+    main {
+      max-width: 480px;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+    p { color: var(--muted); }
+    .domain { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Time's up for today 🌿</h1>
+    <p>
+      You've reached your daily limit on
+      <span class="domain" id="domain">this site</span>.
+      It stays blocked until tomorrow. Come back refreshed.
+    </p>
+  </main>
+  <script src="blocked.js"></script>
+</body>
+</html>

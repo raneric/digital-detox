@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Digital Detox</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Digital Detox</h1>
+      <button id="reset-all" class="ghost" title="Clear all recorded usage">
+        Reset usage
+      </button>
+    </header>
+
+    <p class="hint">Daily time limit per site, in minutes. 0 = no limit.</p>
+
+    <ul id="site-list" aria-label="Configured sites"></ul>
+
+    <form id="add-form">
+      <input
+        id="new-domain"
+        type="text"
+        placeholder="example.com"
+        required
+        pattern="^([a-z0-9-]+\.)+[a-z]{2,}$"
+        autocomplete="off"
+      />
+      <input
+        id="new-limit"
+        type="number"
+        min="0"
+        max="1440"
+        value="30"
+        required
+      />
+      <button type="submit" class="primary">Add site</button>
+    </form>
+
+    <template id="site-row">
+      <li class="site-row">
+        <label class="site-name"></label>
+        <div class="controls">
+          <span class="usage"></span>
+          <input class="limit" type="number" min="0" max="1440" />
+          <span class="unit"> min</span>
+          <button class="reset ghost" title="Reset today's usage for this site">
+            ↺
+          </button>
+          <button class="remove ghost" title="Remove this site">✕</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
