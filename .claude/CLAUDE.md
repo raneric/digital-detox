@@ -21,6 +21,7 @@ src/background/domain-matcher.js# URL → base domain extraction/matching (e.g. 
 src/background/limit-policy.js  # pure decision logic (over-limit, remaining, accumulate) — unit-testable
 src/background/usage-tracker.js # accrues active-tab time via events + 30s alarm flush
 src/background/site-blocker.js  # declarativeNetRequest dynamic rules, deterministic rule IDs
+src/background/card-feed.js     # learning-card RSS refresh (Medium tag feeds) + cache
 src/background/config.js        # shared constants
 src/popup/*                     # settings UI (talks to worker via messages only)
 src/blocked/*                   # the block page users land on
@@ -38,7 +39,7 @@ src/blocked/*                   # the block page users land on
 
 - Plain ES modules, no TypeScript, no bundler, no external dependencies.
 - JSDoc typedefs stand in for types (`SiteLimit`, `UsageRecord`, `Settings` in `repository.js`) — keep them updated when changing shapes.
-- Permissions are minimal (`tabs`, `storage`, `alarms`, `declarativeNetRequest`) — don't add permissions without strong justification.
+- Permissions are minimal (`tabs`, `storage`, `alarms`, `declarativeNetRequest`, plus `host_permissions` for `https://medium.com/*` used only by the learning-card feed refresh) — don't add permissions without strong justification.
 
 ## Planned improvements (TODO)
 

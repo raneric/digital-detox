@@ -64,11 +64,30 @@ your own limits:
 2. There you can change limits, reset a site's day, reset everything, or
    remove a site. Every destructive action asks for confirmation.
 
+### Learning cards, personalized
+
+When a site is blocked you land on a page with a **learning card** — a short
+article pick (title, one-line summary, link) you can read in a new tab
+instead of scrolling. Cards rotate: you won't see the same one until the
+deck cycles. Two ways cards stay interesting:
+
+- **You choose the topics.** In the popup, open **Manage / reset sites ↗**
+  and tick the topics you care about — Wellbeing, AI, Focus, Science,
+  Philosophy, Career.
+- **Fresh picks, twice a day.** The extension bundles ~36 hand-picked
+  articles, and once a day it quietly refreshes a small cache of new
+  article links from Medium's public per-topic feeds for your chosen
+  topics. No account, no tracking; if you're offline or the fetch fails,
+  the bundled articles still show.
+
 ### Privacy
 
 Everything stays on your computer. The extension has no account, no server,
-no analytics: it only stores your site list and today's usage in your
-browser's local storage. Uninstalling deletes all of it.
+no analytics: it only stores your site list, today's usage, and a small
+learning-card cache in your browser's local storage. The only network
+request it makes is the daily article-feed refresh from medium.com — skip
+the topic feature and the extension never touches the network. Uninstalling
+deletes all of it.
 
 ---
 

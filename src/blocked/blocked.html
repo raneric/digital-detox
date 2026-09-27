@@ -16,6 +16,9 @@
 
     <!-- Learning card: hidden until a card is successfully loaded,
          so the static message always stands on its own. -->
+    <p id="card-intro" class="card-intro" hidden>
+      ✨ While you're here, here's something worth reading
+    </p>
     <section id="card" class="card" hidden>
       <div class="card-top">
         <span id="card-badge" class="badge"></span>
@@ -23,11 +26,13 @@
       </div>
       <h2 id="card-title"></h2>
       <p id="card-blurb"></p>
-      <a id="card-link" class="card-link" target="_blank" rel="noopener noreferrer"
-        >Read the article ↗</a
-      >
       <div class="card-actions">
-        <button id="another" class="ghost" type="button">Show me another</button>
+        <a id="card-link" class="card-link primary" target="_blank"
+          rel="noopener noreferrer">Read the article ↗</a
+        >
+        <button id="another" class="ghost" type="button">
+          Show me another
+        </button>
       </div>
     </section>
   </main>

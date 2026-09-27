@@ -8,9 +8,19 @@ import { UsageTracker } from './usage-tracker.js';
 import { SiteBlocker } from './site-blocker.js';
 import { LimitPolicy } from './limit-policy.js';
 import { DomainMatcher } from './domain-matcher.js';
+import { maybeRefresh } from './card-feed.js';
 import { FLUSH_INTERVAL_MINUTES } from './config.js';
 
 const blocker = new SiteBlocker();
+
+/** Refreshes the learning-card feed cache if it is stale (best effort). */
+async function refreshCards() {
+  try {
+    await maybeRefresh(await repository.getSettings());
+  } catch {
+    // Card freshness is cosmetic; never let it disturb tracking/blocking.
+  }
+}
 
 /** Keeps DNR rules in lockstep with over-limit domains. */
 async function syncBlocking() {
@@ -90,6 +100,7 @@ chrome.runtime.onStartup.addListener(async () => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'usage-flush') {
     await tracker.tick();
+    await refreshCards();
   }
 });
 
@@ -114,6 +125,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       case 'SAVE_SETTINGS':
         await repository.saveSettings(message.settings);
         await enforce();
+        void refreshCards(); // topics may have changed
         sendResponse({ ok: true });
         break;
       case 'RESET_USAGE':

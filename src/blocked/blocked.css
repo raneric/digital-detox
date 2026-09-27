@@ -55,14 +55,31 @@ h1 {
 
 /* --- Learning card ------------------------------------------------------- */
 
+/* Reframes the card as a suggestion, separate from the block notice. */
+.card-intro {
+  margin: 28px 0 10px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
   border-radius: 10px;
   padding: 18px 20px;
-  margin-top: 18px;
+  margin-top: 0;
   text-align: left;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   animation: card-in 0.35s ease-out both;
+}
+
+.card:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 @keyframes card-in {
@@ -97,14 +114,44 @@ h1 {
   border-radius: 999px;
 }
 
-.badge.wellbeing {
+.badge.wellbeing,
+.badge.topic-wellbeing {
   color: var(--ok);
   background: var(--ok-soft);
 }
 
-.badge.ai {
+.badge.ai,
+.badge.topic-ai,
+.badge.topic-science {
   color: var(--accent);
   background: var(--accent-soft);
+}
+
+.badge.topic-focus {
+  color: var(--warn, #e5a13c);
+  background: var(--warn-soft, #f7ecd9);
+}
+
+.badge.topic-philosophy {
+  color: var(--muted);
+  background: var(--border);
+}
+
+.badge.topic-career {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  .badge.topic-focus {
+    color: #f0b25a;
+    background: #33291a;
+  }
+
+  .badge.topic-philosophy {
+    color: var(--muted);
+    background: var(--border);
+  }
 }
 
 .source {
@@ -136,8 +183,30 @@ h1 {
 }
 
 .card-actions {
-  margin-top: 12px;
-  text-align: right;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Primary CTA — unmistakably the suggested action. */
+.card-link.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 7px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: filter 0.15s ease;
+}
+
+.card-link.primary:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
 }
 
 .ghost {

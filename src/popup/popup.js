@@ -39,6 +39,17 @@ const rowTemplate = document.getElementById("site-row");
 const addForm = document.getElementById("add-form");
 const emptyEl = document.getElementById("empty-state");
 const confirmDialog = document.getElementById("confirm-dialog");
+const topicsSection = document.getElementById("topics-section");
+const topicsList = document.getElementById("topics-list");
+
+const TOPIC_LABELS = {
+  wellbeing: "Wellbeing",
+  ai: "AI",
+  focus: "Focus",
+  science: "Science",
+  philosophy: "Philosophy",
+  career: "Career",
+};
 
 if (IS_OPTIONS_MODE) {
   document.body.classList.add("options-mode");
@@ -155,11 +166,46 @@ class SiteRow {
   }
 }
 
+/**
+ * Options mode only: topic checkboxes for the block-page learning cards.
+ * Uses SAVE_SETTINGS like every other settings change.
+ */
+async function renderTopics(settings) {
+  if (!IS_OPTIONS_MODE) return;
+  topicsSection.hidden = false;
+  const chosen = new Set(settings.cardTopics ?? []);
+  const topics = Object.keys(TOPIC_LABELS);
+  topicsList.replaceChildren(
+    ...topics.map((topic) => {
+      const label = document.createElement("label");
+      label.className = "topic-check";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = chosen.has(topic);
+      box.addEventListener("change", async () => {
+        const next = box.checked
+          ? [...chosen, topic]
+          : [...chosen].filter((t) => t !== topic);
+        chosen.clear();
+        next.forEach((t) => chosen.add(t));
+        const { settings: current } = await BackgroundClient.getState();
+        current.cardTopics = [...chosen];
+        await BackgroundClient.saveSettings(current);
+      });
+      const text = document.createElement("span");
+      text.textContent = TOPIC_LABELS[topic];
+      label.append(box, text);
+      return label;
+    })
+  );
+}
+
 /** Loads state and renders the site list. */
 async function render() {
   const { settings, usage } = await BackgroundClient.getState();
   const sites = Object.values(settings.sites);
   emptyEl.hidden = sites.length > 0;
+  await renderTopics(settings);
   listEl.replaceChildren(
     ...sites.map((site) => {
       const row = new SiteRow(site, usage[site.domain] || null, {

@@ -6,15 +6,31 @@
 
 /**
  * @typedef {Object} LearningCard
- * @property {string} id                    Stable slug, used for seen-tracking
- * @property {'wellbeing'|'ai'} topic       Badge shown on the card
+ * @property {string} id                    Stable slug/id, used for seen-tracking
+ * @property {string} topic                 Badge shown on the card
  * @property {string} title
- * @property {string} blurb
+ * @property {string} [blurb]
  * @property {string} url
  * @property {string} [source]              Optional author/publication byline
  */
 
 /** @typedef {{card: LearningCard, nextSeen: string[]}|null} PickResult */
+
+/**
+ * Filters a deck down to the user's chosen topics. A null/empty topic
+ * list means "no preference" and returns the full deck.
+ * @param {LearningCard[]} cards
+ * @param {string[]|null|undefined} topics
+ * @returns {LearningCard[]}
+ */
+export function cardsForTopics(cards, topics) {
+  if (!Array.isArray(cards)) return [];
+  if (!Array.isArray(topics) || topics.length === 0) return cards;
+  const chosen = new Set(topics);
+  const filtered = cards.filter((c) => c?.topic && chosen.has(c.topic));
+  // Safety net: if the prefs match nothing in this deck, show everything.
+  return filtered.length > 0 ? filtered : cards;
+}
 
 /**
  * Picks a random unseen card; wraps around to the full deck once every

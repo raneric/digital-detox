@@ -248,6 +248,40 @@ body.options-mode .limit-label {
   width: 58px;
 }
 
+/* Learning-card topic picker (options mode only). */
+#topics-section {
+  margin: 14px 0 12px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 8px;
+}
+
+.topic-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.topic-check input {
+  accent-color: var(--accent);
+}
+
 .options-link {
   margin-top: 12px;
   font-size: 12px;

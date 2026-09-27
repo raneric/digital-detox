@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "cards": [
     {
       "id": "newport-deep-life",
@@ -96,6 +96,198 @@
       "blurb": "Graham's essay on curiosity, taste, and the compounding effect of working on things you genuinely care about.",
       "url": "https://paulgraham.com/greatwork.html",
       "source": "Paul Graham"
+    },
+    {
+      "id": "newport-deep-work-rules",
+      "topic": "focus",
+      "title": "Deep Work: Rules for Focused Success in a Distracted World",
+      "blurb": "Newport's case that sustained concentration is becoming both rarer and more valuable - and how to train it like a skill.",
+      "url": "https://www.calnewport.com/blog/2016/01/24/deep-work-rules-for-focused-success-in-a-distracted-world/",
+      "source": "Cal Newport"
+    },
+    {
+      "id": "newport-deep-work-good-life",
+      "topic": "focus",
+      "title": "Deep Work and the Good Life",
+      "blurb": "Why depth is not just a productivity trick but a lifestyle: a craftsman's approach to everything you do, including your attention.",
+      "url": "https://www.calnewport.com/deep-work",
+      "source": "Cal Newport"
+    },
+    {
+      "id": "clear-focus",
+      "topic": "focus",
+      "title": "How to Focus",
+      "blurb": "Practical, evidence-informed steps for protecting your attention in an environment engineered to fragment it.",
+      "url": "https://www.jamesclear.com/focus",
+      "source": "James Clear"
+    },
+    {
+      "id": "clear-stop-procrastinating",
+      "topic": "focus",
+      "title": "How to Stop Procrastinating",
+      "blurb": "A research-backed look at why we delay - and the small starting rituals that make beginning easier than avoiding.",
+      "url": "https://www.jamesclear.com/stop-procrastinating",
+      "source": "James Clear"
+    },
+    {
+      "id": "sivers-one-sentence",
+      "topic": "focus",
+      "title": "Writing one sentence per line",
+      "blurb": "Sivers's simple writing practice that forces clarity of thought - one idea, one line, no hiding inside paragraphs.",
+      "url": "https://sive.rs/1s",
+      "source": "Derek Sivers"
+    },
+    {
+      "id": "graham-lazy",
+      "topic": "focus",
+      "title": "Lazy",
+      "blurb": "Graham on the difference between laziness and indirection - why ambitious people look lazy while they work on what actually matters.",
+      "url": "https://paulgraham.com/lazy.html",
+      "source": "Paul Graham"
+    },
+    {
+      "id": "quanta-infinity-sizes",
+      "topic": "science",
+      "title": "How Can Infinity Come in Many Sizes?",
+      "blurb": "A mathematician-friendly tour of different infinities - countable, uncountable, and why some are bigger than others.",
+      "url": "https://www.quantamagazine.org/how-can-infinity-come-in-many-sizes-20260223/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "quanta-quantum-end",
+      "topic": "science",
+      "title": "Where Does the Quantum World End and Ours Begin?",
+      "blurb": "Physicists keep pushing the boundary where quantum strangeness gives way to classical everyday objects - and the line keeps moving.",
+      "url": "https://www.quantamagazine.org/where-does-the-quantum-world-end-and-ours-begin-20260917/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "quanta-entanglement-space-time",
+      "topic": "science",
+      "title": "Entanglement Builds Space-Time, Now Magic Gives It Gravity",
+      "blurb": "How quantum entanglement may literally weave the fabric of space and time - one of the boldest ideas in modern physics, told accessibly.",
+      "url": "https://www.quantamagazine.org/entanglement-builds-space-time-now-magic-gives-it-gravity-20260603/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "quanta-biology-quantumlike",
+      "topic": "science",
+      "title": "Biology Might Not Be Quantum, but Its Math Is Quantumlike",
+      "blurb": "The surprising mathematics life shares with quantum theory - a fresh lens on how organisms process information.",
+      "url": "https://www.quantamagazine.org/biology-might-not-be-quantum-but-its-math-is-quantumlike-20260923/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "quanta-ctenophores",
+      "topic": "science",
+      "title": "Ctenophores Aren't Just Beautiful - They're Biological Wonders",
+      "blurb": "Meet the comb jellies: translucent ocean drifters so evolutionarily strange they may rewrite the animal family tree.",
+      "url": "https://www.quantamagazine.org/ctenophores-arent-just-beautiful-theyre-biological-wonders-20260916/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "quanta-space-time-lab",
+      "topic": "science",
+      "title": "One Lab's Quest to Build Space-Time Out of Quantum Particles",
+      "blurb": "Inside the experiments trying to show in a laboratory that space and time emerge from quantum entanglement.",
+      "url": "https://www.quantamagazine.org/one-labs-quest-to-build-space-time-out-of-quantum-particles-20210907/",
+      "source": "Quanta Magazine"
+    },
+    {
+      "id": "sep-attention",
+      "topic": "philosophy",
+      "title": "Attention",
+      "blurb": "What philosophers have meant by attention from William James to today - and why it sits at the heart of perception, agency, and ethics.",
+      "url": "https://plato.stanford.edu/entries/attention/",
+      "source": "Stanford Encyclopedia of Philosophy"
+    },
+    {
+      "id": "sep-well-being",
+      "topic": "philosophy",
+      "title": "Well-Being",
+      "blurb": "What makes a life go well for the one living it? A careful map of hedonism, desire theories, and objective-list views.",
+      "url": "https://plato.stanford.edu/entries/well-being/",
+      "source": "Stanford Encyclopedia of Philosophy"
+    },
+    {
+      "id": "sep-life-meaning",
+      "topic": "philosophy",
+      "title": "The Meaning of Life",
+      "blurb": "Supernatural, naturalist, and nihilist answers to the oldest question - surveyed with unusual clarity and no preaching.",
+      "url": "https://plato.stanford.edu/entries/life-meaning/",
+      "source": "Stanford Encyclopedia of Philosophy"
+    },
+    {
+      "id": "sep-ethics-virtue",
+      "topic": "philosophy",
+      "title": "Virtue Ethics",
+      "blurb": "The tradition that asks not 'what should I do?' but 'what kind of person should I be?' - from Aristotle to modern revivals.",
+      "url": "https://plato.stanford.edu/entries/ethics-virtue/",
+      "source": "Stanford Encyclopedia of Philosophy"
+    },
+    {
+      "id": "sep-technology",
+      "topic": "philosophy",
+      "title": "Philosophy of Technology",
+      "blurb": "How thinkers have understood our relationship with tools and machines - essential background for anyone questioning their phone habits.",
+      "url": "https://plato.stanford.edu/entries/technology/",
+      "source": "Stanford Encyclopedia of Philosophy"
+    },
+    {
+      "id": "farnam-socrates",
+      "topic": "philosophy",
+      "title": "Socrates and the Search for Wisdom",
+      "blurb": "What made Socrates the wisest man in Athens, according to the oracle: knowing how much he did not know.",
+      "url": "https://fs.blog/socrates/",
+      "source": "Farnam Street"
+    },
+    {
+      "id": "graham-not-like-work",
+      "topic": "career",
+      "title": "What Doesn't Seem Like Work?",
+      "blurb": "Graham's compass for finding real interests: the work that feels like play to you but looks hard to everyone else.",
+      "url": "https://paulgraham.com/work.html",
+      "source": "Paul Graham"
+    },
+    {
+      "id": "graham-lesson-unlearn",
+      "topic": "career",
+      "title": "The Lesson to Unlearn",
+      "blurb": "School teaches you to optimize for tests; Graham argues the most valuable thing to unlearn is working for the grade instead of the understanding.",
+      "url": "https://paulgraham.com/lesson.html",
+      "source": "Paul Graham"
+    },
+    {
+      "id": "graham-cities-ambition",
+      "topic": "career",
+      "title": "Cities and Ambition",
+      "blurb": "Every city whispers a different message about what matters - a vivid frame for choosing where and how to build your life.",
+      "url": "https://paulgraham.com/cities.html",
+      "source": "Paul Graham"
+    },
+    {
+      "id": "sivers-balance",
+      "topic": "career",
+      "title": "How to Do What You Love and Make Good Money",
+      "blurb": "Sivers's compact playbook: the intersection of what you love, what you're good at, and what people pay for - with honest examples.",
+      "url": "https://sive.rs/balance",
+      "source": "Derek Sivers"
+    },
+    {
+      "id": "sivers-enough",
+      "topic": "career",
+      "title": "You have enough.",
+      "blurb": "A short meditation on wanting less, from someone who ran a company, sold it, and gave the money away.",
+      "url": "https://sive.rs/enough",
+      "source": "Derek Sivers"
+    },
+    {
+      "id": "clear-deliberate-practice",
+      "topic": "career",
+      "title": "The Beginner's Guide to Deliberate Practice",
+      "blurb": "Why 10,000 hours of casual experience isn't mastery, and what deliberate, feedback-driven practice looks like instead.",
+      "url": "https://www.jamesclear.com/beginners-guide-deliberate-practice",
+      "source": "James Clear"
     }
   ]
 }

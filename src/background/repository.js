@@ -78,7 +78,18 @@ class UsageRepository {
 /**
  * @typedef {Object} Settings
  * @property {Record<string, SiteLimit>} sites Keyed by domain
+ * @property {string[]} cardTopics             Topics shown on the block page
  */
+
+/** All card topics; also the default cardTopics value. */
+export const ALL_CARD_TOPICS = Object.freeze([
+  'wellbeing',
+  'ai',
+  'focus',
+  'science',
+  'philosophy',
+  'career',
+]);
 
 /** @type {Settings} */
 const defaultSettings = Object.freeze({
@@ -92,6 +103,7 @@ const defaultSettings = Object.freeze({
     'reddit.com': { domain: 'reddit.com', limitMinutes: 30, enabled: true },
     'linkedin.com': { domain: 'linkedin.com', limitMinutes: 15, enabled: true },
   },
+  cardTopics: [...ALL_CARD_TOPICS],
 });
 
 /**
