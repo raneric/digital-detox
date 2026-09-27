@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "id": "newport-deep-life",
+      "topic": "wellbeing",
+      "title": "Wendell Berry and the Promise of the Deep Life",
+      "blurb": "Newport argues that a meaningful life is built on sustained attention to the things that matter - and that cultivating depth is the antidote to a scattered, feed-driven day.",
+      "url": "https://www.calnewport.com/wendell-berry-and-the-promise-of-the-deep-life/",
+      "source": "Cal Newport"
+    },
+    {
+      "id": "newport-digital-minimalism",
+      "topic": "wellbeing",
+      "title": "On Digital Minimalism",
+      "blurb": "A short reflection on why decluttering your digital life for thirty days can reset your relationship with technology, and what is worth keeping afterward.",
+      "url": "https://www.calnewport.com/blog/2021/03/21/on-digital-minimalism/",
+      "source": "Cal Newport"
+    },
+    {
+      "id": "eyal-can-t-stop-messaging",
+      "topic": "wellbeing",
+      "title": "The Psychology Behind Why We Can't Stop Messaging",
+      "blurb": "The hook model in plain language: how triggers, actions, and variable rewards keep us checking in - and why knowing the loop is the first step out of it.",
+      "url": "https://www.nirandfar.com/the-psychology-behind-why-we-cant-stop-messaging/",
+      "source": "Nir Eyal"
+    },
+    {
+      "id": "clear-habits-stick",
+      "topic": "wellbeing",
+      "title": "How To Start New Habits That Actually Stick",
+      "blurb": "Three practical steps for making new habits automatic, starting with the two-minute rule. Useful if you want 'less scrolling' to actually stick.",
+      "url": "https://www.jamesclear.com/three-steps-habit-change",
+      "source": "James Clear"
+    },
+    {
+      "id": "farnam-mental-models",
+      "topic": "wellbeing",
+      "title": "Mental Models: The Best Way to Make Intelligent Decisions",
+      "blurb": "A readable map of the core thinking tools - from inversion to second-order consequences - that help you make better decisions with less noise.",
+      "url": "https://fs.blog/mental-models/",
+      "source": "Farnam Street"
+    },
+    {
+      "id": "sivers-prepare-your-no",
+      "topic": "wellbeing",
+      "title": "Prepare your 'no' and keep it handy",
+      "blurb": "A two-minute read on deciding in advance what you will decline, so the next tempting ask - or notification - does not get your yes by default.",
+      "url": "https://sive.rs/n0",
+      "source": "Derek Sivers"
+    },
+    {
+      "id": "urban-ai-revolution",
+      "topic": "ai",
+      "title": "The AI Revolution: The Road to Superintelligence",
+      "blurb": "A famously thorough two-part explainer of what AI is, where it came from, and why the road ahead is both exciting and hard to predict.",
+      "url": "https://waitbutwhy.com/2015/01/artificial-intelligence-revolution-1.html",
+      "source": "Tim Urban, Wait But Why"
+    },
+    {
+      "id": "altman-gentle-singularity",
+      "topic": "ai",
+      "title": "The Gentle Singularity",
+      "blurb": "Altman's short reflection on what it feels like to live through the AI transition - gradual, uneven, and already underway.",
+      "url": "https://blog.samaltman.com/the-gentle-singularity",
+      "source": "Sam Altman"
+    },
+    {
+      "id": "altman-machine-intelligence",
+      "topic": "ai",
+      "title": "Machine intelligence, part 1",
+      "blurb": "An early, readable take on how machine intelligence might scale, and what that could mean for work, science, and everyday life.",
+      "url": "https://blog.samaltman.com/machine-intelligence-part-1",
+      "source": "Sam Altman"
+    },
+    {
+      "id": "newport-superintelligence-fairy-tale",
+      "topic": "ai",
+      "title": "Superintelligence is a Fairy Tale. But Chasing It Can Still Cause Harm.",
+      "blurb": "A skeptic's view of runaway-AI narratives: Newport argues the more concrete story is how we use these tools right now, for better and worse.",
+      "url": "https://www.calnewport.com/superintelligence-is-a-fairy-tale-but-chasing-it-can-still-cause-harm/",
+      "source": "Cal Newport"
+    },
+    {
+      "id": "karpathy-zero-to-hero",
+      "topic": "ai",
+      "title": "Neural Networks: Zero to Hero",
+      "blurb": "Build neural networks from scratch, line by line, with one of the field's best teachers. For when you would rather understand AI than read about it.",
+      "url": "https://karpathy.ai/zero-to-hero.html",
+      "source": "Andrej Karpathy"
+    },
+    {
+      "id": "graham-great-work",
+      "topic": "ai",
+      "title": "How to Do Great Work",
+      "blurb": "Graham's essay on curiosity, taste, and the compounding effect of working on things you genuinely care about.",
+      "url": "https://paulgraham.com/greatwork.html",
+      "source": "Paul Graham"
+    }
+  ]
+}

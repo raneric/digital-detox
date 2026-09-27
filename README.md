@@ -1,27 +1,83 @@
-# Digital Detox — Social Media Time Limiter (Chrome Extension)
+# Digital Detox — take back your time on social media
 
-Set a daily time limit per social media site. When the limit is reached, the
-site is blocked (redirected to a "time's up" page) until the next day.
+Digital Detox is a free, open-source Chrome extension that helps you spend
+less time on social media. You decide how many minutes per day you're willing
+to give each site — Facebook, Instagram, TikTok, X/Twitter, YouTube, whatever
+eats your evenings. Once your daily budget is spent, the site is blocked until
+tomorrow. No willpower required; the extension does the remembering for you.
 
-## Load it in Chrome
+## Why?
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top right)
+Because "just 5 more minutes" is a lie we tell ourselves. Feeds are designed
+to keep you scrolling, and an on-screen clock is easy to ignore. Digital
+Detox makes the limit *real*: when your time is up, the site is simply gone
+until the next day. It works even if the browser is restarted, and the timer
+never gives you free minutes after sleep or hibernation.
+
+## How to use it
+
+### 1. Install (no store required)
+
+1. Open Chrome and go to `chrome://extensions`
+2. Turn on **Developer mode** (toggle, top right)
 3. Click **Load unpacked** and select this folder
 
-## Features
+The shield icon appears in your toolbar. (Tip: pin it with the puzzle-piece
+button so it's one click away.)
 
-- Per-site daily limits (minutes), configurable in the popup
-- Tracks time spent on the **active tab**, including subdomains
-  (`www.instagram.com` counts for `instagram.com`)
-- Blocks the site once the limit is reached; unblocks automatically at midnight
-- Survives service-worker restarts, browser restarts, and sleep/hibernate
-  (time is never double-counted or dumped in a single burst)
-- Default sites preconfigured: Facebook, Instagram, X/Twitter, YouTube,
-  TikTok, Reddit, LinkedIn — add or remove any site from the popup
-- "Reset usage" per site or globally
+### 2. Add a site and set your limit
 
-## Architecture (MV3)
+Click the shield icon. In the popup:
+
+1. Type a site's address — `instagram.com`, `youtube.com`, … — and a daily
+   limit in minutes (for example 30).
+2. Click **Add**.
+
+That's it. From now on, the extension quietly counts the time you spend on
+that site (on its subdomains too: `www.instagram.com` counts as
+`instagram.com`). The popup shows, for each site:
+
+- a **progress bar** — green while you have time left, amber when you're
+  close, red when you're out
+- how many minutes you've used today against your limit
+
+You can adjust a site's limit anytime from the popup. Time only counts while
+the site's tab is open *and in front of you* — switching tabs pauses the
+clock. Each day at midnight, every counter starts fresh.
+
+### 3. When the limit is reached
+
+The tab you're on is replaced with a "time's up" page, and the site won't
+load again until tomorrow. There is no snooze button where you'll meet it —
+by design.
+
+### 4. Resetting or removing a site (the honest way)
+
+Resetting a timer is *deliberately* kept out of the popup, so that in a weak
+moment a single accidental click can't wipe your progress. If you genuinely
+need it — you're a parent, you're testing, or you've decided to renegotiate
+your own limits:
+
+1. Click **Manage / reset sites ↗** at the bottom of the popup (it opens in
+   a full browser tab — enough friction to make you ask "do I really want
+   this?").
+2. There you can change limits, reset a site's day, reset everything, or
+   remove a site. Every destructive action asks for confirmation.
+
+### Privacy
+
+Everything stays on your computer. The extension has no account, no server,
+no analytics: it only stores your site list and today's usage in your
+browser's local storage. Uninstalling deletes all of it.
+
+---
+
+# For contributors
+
+Digital Detox is a Chrome MV3 extension: plain ES modules, no build step, no
+dependencies, no TypeScript.
+
+## Project layout
 
 | File                               | Responsibility                                       |
 | ---------------------------------- | ---------------------------------------------------- |
@@ -33,3 +89,50 @@ site is blocked (redirected to a "time's up" page) until the next day.
 | `src/background/site-blocker.js`   | `declarativeNetRequest` dynamic rules                |
 | `src/popup/*`                      | Settings UI (talks to the worker via messages only)  |
 | `src/blocked/*`                    | The block page users land on                         |
+
+The popup serves two modes: the default popup view is read/limit-adjust only,
+while `popup.html?view=options` (also registered as the extension's options
+page) exposes reset/remove actions behind confirmation dialogs.
+
+## Working on the code
+
+- Load unpacked as described above; after editing background code, click the
+  extension's **Reload** arrow on `chrome://extensions` and refresh open tabs.
+- Validate changes: `node --check` every touched JS file;
+  `python3 -c "import json; json.load(open('manifest.json'))"` for the
+  manifest.
+- The popup talks to the service worker **only** via
+  `chrome.runtime.sendMessage` — no direct storage access from UI code.
+
+## Critical invariants — do not break
+
+- **No timers in the service worker.** MV3 kills workers aggressively.
+  Correctness comes from event timestamps (`lastTick`) + the `usage-flush`
+  alarm + persisted storage. A `setInterval`-based approach silently loses or
+  double-counts time.
+- **Time accrues only on the focused active tab.** `UsageTracker` defines
+  what counts; each flush is clamped (`MAX_CREDIT_SECONDS`) so
+  sleep/hibernate never dumps hours into one tick.
+- **DNR rule IDs are deterministic** (`SiteBlocker.ruleIdFor` hashes the
+  domain). Never use random IDs — add/remove depends on stability across
+  worker restarts.
+- **Storage shape:** `settings.sites` is keyed by base domain; `usage`
+  records are `{date: 'YYYY-MM-DD', secondsUsed}`. Daily reset is implicit —
+  `LimitPolicy` ignores records not dated today; there is no midnight alarm.
+- **The background worker is the single source of truth for blocking.** The
+  popup duplicates the over-limit check only for display.
+
+## Conventions
+
+- Plain ES modules, JSDoc typedefs stand in for types (`SiteLimit`,
+  `UsageRecord`, `Settings` in `repository.js`) — keep them updated when
+  changing shapes.
+- Keep permissions minimal (`tabs`, `storage`, `alarms`,
+  `declarativeNetRequest`) — don't add permissions without strong
+  justification.
+
+## Ideas welcome
+
+Warning notification before a limit hits, weekly usage stats, proper
+public-suffix handling (`co.uk`-style domains), idle detection. See the TODO
+list in [`.claude/CLAUDE.md`](.claude/CLAUDE.md) for the full list.

@@ -3,48 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <title>Site blocked — Digital Detox</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --fg: #1c1e21;
-      --muted: #65676b;
-      --accent: #1877f2;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --fg: #e4e6eb;
-        --muted: #b0b3b8;
-        --accent: #4599ff;
-      }
-    }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      font: 16px/1.6 system-ui, sans-serif;
-      color: var(--fg);
-      background: transparent;
-    }
-    main {
-      max-width: 480px;
-      padding: 2rem;
-      text-align: center;
-    }
-    h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
-    p { color: var(--muted); }
-    .domain { color: var(--accent); font-weight: 600; }
-  </style>
+  <link rel="stylesheet" href="blocked.css" />
 </head>
 <body>
   <main>
     <h1>Time's up for today 🌿</h1>
-    <p>
+    <p class="lead">
       You've reached your daily limit on
       <span class="domain" id="domain">this site</span>.
       It stays blocked until tomorrow. Come back refreshed.
     </p>
+
+    <!-- Learning card: hidden until a card is successfully loaded,
+         so the static message always stands on its own. -->
+    <section id="card" class="card" hidden>
+      <div class="card-top">
+        <span id="card-badge" class="badge"></span>
+        <span id="card-source" class="source"></span>
+      </div>
+      <h2 id="card-title"></h2>
+      <p id="card-blurb"></p>
+      <a id="card-link" class="card-link" target="_blank" rel="noopener noreferrer"
+        >Read the article ↗</a
+      >
+      <div class="card-actions">
+        <button id="another" class="ghost" type="button">Show me another</button>
+      </div>
+    </section>
   </main>
-  <script src="blocked.js"></script>
+  <script type="module" src="blocked.js"></script>
 </body>
 </html>
