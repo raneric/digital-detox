@@ -3,12 +3,15 @@
  * query string set by the SiteBlocker redirect rule), plus a rotating
  * learning card. Cards come from the bundled deck (cards.json) merged
  * with feed items cached by the background worker (key 'cardFeed');
- * filtered to the user's chosen topics (settings.cardTopics). Every
- * card-related failure must degrade gracefully to the static message —
+ * filtered to the user's chosen topics (settings.cardTopics). User
+ * feedback — opening an article (👍) or "Not for me" (👎) — feeds back
+ * into per-topic weights and a disliked-card list via recordFeedback.
+ * Every card-related failure must degrade gracefully to the static
+ * message —
  * the block itself always works, and this page never touches the network.
  */
 
-import { pickNext, rotateCard, cardsForTopics } from './card-picker.js';
+import { rotateCard, cardsForTopics, recordFeedback } from './card-picker.js';
 
 const TOPIC_LABELS = {
   wellbeing: 'Wellbeing',
@@ -49,6 +52,8 @@ async function loadPrefsAndFeed() {
 }
 
 const cardSection = document.getElementById('card');
+/** The card currently on screen — the target of any 👍/👎 feedback. */
+let currentCard = null;
 
 /** Fills the card UI. Text only via textContent; href behind a scheme guard. */
 function renderCard(card) {
@@ -75,6 +80,7 @@ function renderCard(card) {
   }
 
   cardSection.hidden = false;
+  currentCard = card;
   const intro = document.getElementById('card-intro');
   if (intro) intro.hidden = false;
   // Restart the entrance animation on every card swap.
@@ -100,13 +106,26 @@ async function init() {
 
   const pool = cardsForTopics(allCards, topics);
   const anotherBtn = document.getElementById('another');
-  if (pool.length < 2) anotherBtn.hidden = true;
+  const notForMeBtn = document.getElementById('not-for-me');
+  if (pool.length < 2) {
+    anotherBtn.hidden = true;
+    notForMeBtn.hidden = true;
+  }
 
   const show = async () => {
     const card = await rotateCard(pool);
     if (card) renderCard(card);
   };
 
+  // 👍 is implicit: opening the article is the positive signal.
+  document
+    .getElementById('card-link')
+    .addEventListener('click', () => void recordFeedback(currentCard, 'like'));
+  // 👎 is explicit: exclude the card and demote its topic, then move on.
+  notForMeBtn.addEventListener('click', () => {
+    void recordFeedback(currentCard, 'dislike');
+    void show();
+  });
   anotherBtn.addEventListener('click', () => void show());
   await show();
 }

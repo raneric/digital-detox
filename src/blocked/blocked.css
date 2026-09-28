@@ -223,3 +223,9 @@ h1 {
 .ghost:hover {
   color: var(--fg);
 }
+
+/* The 👎 button gets its own quiet "no thanks" hover. */
+#not-for-me:hover {
+  color: #b3413a;
+  border-color: #cf9d97;
+}
