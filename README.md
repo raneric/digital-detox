@@ -1,18 +1,19 @@
-# Digital Detox — take back your time on social media
+# ReelRest — take back your time on social media
 
-Digital Detox is a free, open-source Chrome extension that helps you spend
+ReelRest is a free, open-source Chrome extension that helps you spend
 less time on social media. You decide how many minutes per day you're willing
 to give each site — Facebook, Instagram, TikTok, X/Twitter, YouTube, whatever
 eats your evenings. Once your daily budget is spent, the site is blocked until
 tomorrow. No willpower required; the extension does the remembering for you.
+And because a block page shouldn't be a dead end, when a site is blocked the
+app suggests more interesting content to read right there on the blocking
+page.
 
 ## Why?
 
 Because "just 5 more minutes" is a lie we tell ourselves. Feeds are designed
-to keep you scrolling, and an on-screen clock is easy to ignore. Digital
-Detox makes the limit *real*: when your time is up, the site is simply gone
-until the next day. It works even if the browser is restarted, and the timer
-never gives you free minutes after sleep or hibernation.
+to keep you scrolling, and an on-screen clock is easy to ignore. ReelRest makes the limit _real_: when your time is up, the site is simply gone
+until the next day.
 
 ## How to use it
 
@@ -42,7 +43,7 @@ that site (on its subdomains too: `www.instagram.com` counts as
 - how many minutes you've used today against your limit
 
 You can adjust a site's limit anytime from the popup. Time only counts while
-the site's tab is open *and in front of you* — switching tabs pauses the
+the site's tab is open _and in front of you_ — switching tabs pauses the
 clock. Each day at midnight, every counter starts fresh.
 
 ### 3. When the limit is reached
@@ -53,7 +54,7 @@ by design.
 
 ### 4. Resetting or removing a site (the honest way)
 
-Resetting a timer is *deliberately* kept out of the popup, so that in a weak
+Resetting a timer is _deliberately_ kept out of the popup, so that in a weak
 moment a single accidental click can't wipe your progress. If you genuinely
 need it — you're a parent, you're testing, or you've decided to renegotiate
 your own limits:
@@ -64,7 +65,7 @@ your own limits:
 2. There you can change limits, reset a site's day, reset everything, or
    remove a site. Every destructive action asks for confirmation.
 
-### Learning cards, personalized
+### 5. Learning cards, personalized
 
 When a site is blocked you land on a page with a **learning card** — a short
 article pick (title, one-line summary, link) you can read in a new tab
@@ -93,7 +94,7 @@ deletes all of it.
 
 # For contributors
 
-Digital Detox is a Chrome MV3 extension: plain ES modules, no build step, no
+ReelRest is a Chrome MV3 extension: plain ES modules, no build step, no
 dependencies, no TypeScript.
 
 ## Project layout
@@ -106,6 +107,8 @@ dependencies, no TypeScript.
 | `src/background/limit-policy.js`   | Pure limit logic (over-limit? remaining? accumulate) |
 | `src/background/usage-tracker.js`  | Accrues active-tab time via events + alarm           |
 | `src/background/site-blocker.js`   | `declarativeNetRequest` dynamic rules                |
+| `src/background/card-feed.js`      | Learning-card RSS refresh (Medium feeds) + cache     |
+| `src/background/config.js`         | Shared constants                                     |
 | `src/popup/*`                      | Settings UI (talks to the worker via messages only)  |
 | `src/blocked/*`                    | The block page users land on                         |
 

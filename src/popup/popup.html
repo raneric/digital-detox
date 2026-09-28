@@ -2,24 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Digital Detox</title>
+    <title>ReelRest</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <header>
-      <h1><span class="logo">🛡️</span> Digital Detox</h1>
-      <button id="reset-all" class="ghost danger-ghost" title="Clear all recorded usage">
+      <h1><span class="logo">🛡️</span> ReelRest</h1>
+      <button
+        id="reset-all"
+        class="ghost danger-ghost"
+        title="Clear all recorded usage"
+      >
         Reset usage
       </button>
     </header>
 
-    <p class="hint">Daily time limit per site, in minutes. 0 = no limit.</p>
-
-    <ul id="site-list" aria-label="Configured sites"></ul>
-
-    <p id="empty-state" class="hint empty" hidden>
-      No sites yet. Add one below to start tracking.
-    </p>
+    <!-- Options mode only: personalization of the block-page learning cards. -->
+    <section id="topics-section" hidden>
+      <h2 class="section-title">Learning card topics</h2>
+      <p class="hint">Choose what to read when a site is blocked.</p>
+      <div id="topics-list" class="topics"></div>
+    </section>
 
     <form id="add-form">
       <input
@@ -42,12 +45,13 @@
       <button type="submit" class="primary">Add</button>
     </form>
 
-    <!-- Options mode only: personalization of the block-page learning cards. -->
-    <section id="topics-section" hidden>
-      <h2 class="section-title">Learning card topics</h2>
-      <p class="hint">Choose what to read when a site is blocked.</p>
-      <div id="topics-list" class="topics"></div>
-    </section>
+    <p class="hint">Daily time limit per site, in minutes. 0 = no limit.</p>
+
+    <ul id="site-list" aria-label="Configured sites"></ul>
+
+    <p id="empty-state" class="hint empty" hidden>
+      No sites yet. Add one below to start tracking.
+    </p>
 
     <footer class="options-link">
       <!-- Only visible in popup mode: destructive actions live in the options page. -->
@@ -69,13 +73,24 @@
         <div class="controls">
           <!-- Popup mode: limit is read-only info. Options mode: editable. -->
           <span class="limit-label"></span>
-          <input class="limit" type="number" min="0" max="1440" aria-label="Limit in minutes" />
+          <input
+            class="limit"
+            type="number"
+            min="0"
+            max="1440"
+            aria-label="Limit in minutes"
+          />
           <span class="unit">min / day</span>
           <span class="spacer"></span>
-          <button class="reset ghost danger-ghost" title="Reset today's usage for this site">
+          <button
+            class="reset ghost danger-ghost"
+            title="Reset today's usage for this site"
+          >
             ↺ Reset
           </button>
-          <button class="remove ghost danger-ghost" title="Remove this site">✕ Remove</button>
+          <button class="remove ghost danger-ghost" title="Remove this site">
+            ✕ Remove
+          </button>
         </div>
       </li>
     </template>

@@ -7,7 +7,7 @@
   --border: #dddfe2;
   --accent: #1877f2;
   --accent-soft: #e7f0fe;
-  --danger: #e5484d;
+  --danger: #f16b6f;
   --ok: #2fa55a;
   --warn: #e5a13c;
 }
@@ -266,20 +266,71 @@ body.options-mode .limit-label {
 .topics {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
+  gap: 8px;
   margin-top: 8px;
 }
 
+/* Chips: the checkbox stays in the DOM for state + keyboard access,
+   but the label itself is the visual control. */
 .topic-check {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
   font-size: 12px;
+  padding: 5px 12px 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.topic-check:hover {
+  border-color: var(--accent);
+  color: var(--fg);
 }
 
 .topic-check input {
-  accent-color: var(--accent);
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Round check badge in front of the label text. */
+.topic-check::before {
+  content: "✓";
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.topic-check:has(input:checked) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.topic-check:has(input:checked)::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.topic-check:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .options-link {

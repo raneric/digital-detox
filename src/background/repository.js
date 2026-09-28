@@ -4,6 +4,8 @@
  * chrome.* API directly, so storage can be swapped or mocked (DIP).
  */
 
+import { TOPIC_FEEDS } from './config.js';
+
 const KEYS = Object.freeze({
   SETTINGS: 'settings',
   USAGE: 'usage',
@@ -81,15 +83,8 @@ class UsageRepository {
  * @property {string[]} cardTopics             Topics shown on the block page
  */
 
-/** All card topics; also the default cardTopics value. */
-export const ALL_CARD_TOPICS = Object.freeze([
-  'wellbeing',
-  'ai',
-  'focus',
-  'science',
-  'philosophy',
-  'career',
-]);
+/** All card topics; also the default cardTopics value. Derived from TOPIC_FEEDS to stay in sync. */
+export const ALL_CARD_TOPICS = Object.freeze(Object.keys(TOPIC_FEEDS));
 
 /** @type {Settings} */
 const defaultSettings = Object.freeze({

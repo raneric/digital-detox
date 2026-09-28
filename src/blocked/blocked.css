@@ -64,6 +64,22 @@ h1 {
   letter-spacing: 0.02em;
 }
 
+/* Quiet pointer to the topic picker in the options page. */
+.topic-hint {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.topic-hint a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.topic-hint a:hover {
+  text-decoration: underline;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);

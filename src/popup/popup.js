@@ -49,6 +49,12 @@ const TOPIC_LABELS = {
   science: "Science",
   philosophy: "Philosophy",
   career: "Career",
+  space: "Space",
+  history: "History",
+  design: "Design",
+  money: "Money",
+  writing: "Writing",
+  creativity: "Creativity",
 };
 
 if (IS_OPTIONS_MODE) {

@@ -20,6 +20,12 @@ const TOPIC_LABELS = {
   science: 'Science',
   philosophy: 'Philosophy',
   career: 'Career',
+  space: 'Space',
+  history: 'History',
+  design: 'Design',
+  money: 'Money',
+  writing: 'Writing',
+  creativity: 'Creativity',
 };
 
 /** @returns {Promise<{version: number, cards: Array}|null>} */
@@ -83,6 +89,8 @@ function renderCard(card) {
   currentCard = card;
   const intro = document.getElementById('card-intro');
   if (intro) intro.hidden = false;
+  const topicHint = document.getElementById('topic-hint');
+  if (topicHint) topicHint.hidden = false;
   // Restart the entrance animation on every card swap.
   cardSection.style.animation = 'none';
   void cardSection.offsetWidth;
@@ -136,4 +144,6 @@ init().catch(() => {
   if (cardSection) cardSection.hidden = true;
   const intro = document.getElementById('card-intro');
   if (intro) intro.hidden = true;
+  const topicHint = document.getElementById('topic-hint');
+  if (topicHint) topicHint.hidden = true;
 });
