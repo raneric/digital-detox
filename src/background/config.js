@@ -5,8 +5,13 @@ export const BLOCKED_PAGE_URL = "src/blocked/blocked.html";
 export const RULE_ID_BASE = 100000;
 /** How often accumulated usage is flushed to storage (minutes). */
 export const FLUSH_INTERVAL_MINUTES = 0.5;
-/** Grace period added to each flush tick so the user isn't cut off mid-page-load. */
-export const WARN_BEFORE_BLOCK_SECONDS = 0;
+
+// --- Limit warnings ---------------------------------------------------------
+
+/** Default "warn N minutes before the limit" setting; 0 disables warnings. */
+export const DEFAULT_WARN_MINUTES = 5;
+/** Icon shown on limit-warning notifications (extension-relative path). */
+export const NOTIFICATION_ICON = "src/assets/icon128.png";
 
 // --- Learning cards ---------------------------------------------------------
 

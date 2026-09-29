@@ -24,6 +24,22 @@
       <div id="topics-list" class="topics"></div>
     </section>
 
+    <!-- Options mode only: limit-warning notifications. -->
+    <section id="warn-section" hidden>
+      <h2 class="section-title">Warnings</h2>
+      <p class="hint">Notify me before a site's time runs out.</p>
+      <div class="warn-setting">
+        <input
+          id="warn-minutes"
+          type="number"
+          min="0"
+          max="120"
+          aria-label="Minutes before the limit"
+        />
+        <span class="unit">min before (0 = off)</span>
+      </div>
+    </section>
+
     <form id="add-form">
       <input
         id="new-domain"

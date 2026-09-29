@@ -46,6 +46,15 @@ You can adjust a site's limit anytime from the popup. Time only counts while
 the site's tab is open _and in front of you_ — switching tabs pauses the
 clock. Each day at midnight, every counter starts fresh.
 
+### A heads-up before time runs out
+
+No one reads a clock while scrolling, so ReelRest taps you on the shoulder:
+by default, **5 minutes before a site's daily limit runs out** you get a
+browser notification ("Only 5 min left on youtube.com today"). You can
+change the lead time — or turn warnings off — in **Manage / reset sites ↗**
+(0 disables them). Each site warns at most once a day; resetting a site's
+usage also re-arms its warning.
+
 ### 3. When the limit is reached
 
 The tab you're on is replaced with a "time's up" page, and the site won't
@@ -107,6 +116,7 @@ dependencies, no TypeScript.
 | `src/background/limit-policy.js`   | Pure limit logic (over-limit? remaining? accumulate) |
 | `src/background/usage-tracker.js`  | Accrues active-tab time via events + alarm           |
 | `src/background/site-blocker.js`   | `declarativeNetRequest` dynamic rules                |
+| `src/background/warn-notifier.js`  | Once-per-day pre-limit warning notifications         |
 | `src/background/card-feed.js`      | Learning-card RSS refresh (Medium feeds) + cache     |
 | `src/background/config.js`         | Shared constants                                     |
 | `src/popup/*`                      | Settings UI (talks to the worker via messages only)  |
@@ -150,11 +160,11 @@ page) exposes reset/remove actions behind confirmation dialogs.
   `UsageRecord`, `Settings` in `repository.js`) — keep them updated when
   changing shapes.
 - Keep permissions minimal (`tabs`, `storage`, `alarms`,
-  `declarativeNetRequest`) — don't add permissions without strong
-  justification.
+  `declarativeNetRequest`, `notifications`) — don't add permissions without
+  strong justification.
 
 ## Ideas welcome
 
-Warning notification before a limit hits, weekly usage stats, proper
-public-suffix handling (`co.uk`-style domains), idle detection. See the TODO
-list in [`.claude/CLAUDE.md`](.claude/CLAUDE.md) for the full list.
+Weekly usage stats, proper public-suffix handling (`co.uk`-style domains),
+idle detection. See the TODO list in
+[`.claude/CLAUDE.md`](.claude/CLAUDE.md) for the full list.

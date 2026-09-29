@@ -36,6 +36,32 @@ export class LimitPolicy {
   }
 
   /**
+   * True when the site is enabled, limited, not yet over the limit, and
+   * today's remaining seconds have entered the warn window.
+   *
+   * The window is clamped to the whole limit and requires some usage
+   * already accrued, so a warn threshold larger than the limit itself
+   * never fires on a fresh visit.
+   *
+   * @param {import('./repository.js').SiteLimit} site
+   * @param {import('./repository.js').UsageRecord|null} usage
+   * @param {number} warnSeconds warn this many seconds before the limit; 0 disables
+   * @returns {boolean}
+   */
+  static isInWarnWindow(site, usage, warnSeconds) {
+    if (!site.enabled || site.limitMinutes <= 0 || warnSeconds <= 0) {
+      return false;
+    }
+    if (!usage || usage.date !== todayKey() || usage.secondsUsed <= 0) {
+      return false;
+    }
+    const remaining = this.secondsRemaining(site, usage);
+    if (remaining <= 0) return false; // over limit → blocker's job, not a warning
+    const windowSeconds = Math.min(warnSeconds, site.limitMinutes * 60);
+    return remaining <= windowSeconds;
+  }
+
+  /**
    * Normalizes a usage record to today (resets stale days).
    * @param {import('./repository.js').UsageRecord|null} prev
    * @param {number} secondsToAdd

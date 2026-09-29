@@ -6,12 +6,14 @@
 import { repository } from './repository.js';
 import { UsageTracker } from './usage-tracker.js';
 import { SiteBlocker } from './site-blocker.js';
+import { WarnNotifier } from './warn-notifier.js';
 import { LimitPolicy } from './limit-policy.js';
 import { DomainMatcher } from './domain-matcher.js';
 import { maybeRefresh } from './card-feed.js';
 import { FLUSH_INTERVAL_MINUTES } from './config.js';
 
 const blocker = new SiteBlocker();
+const warnNotifier = new WarnNotifier(repository);
 
 /** Refreshes the learning-card feed cache if it is stale (best effort). */
 async function refreshCards() {
@@ -22,11 +24,18 @@ async function refreshCards() {
   }
 }
 
-/** Keeps DNR rules in lockstep with over-limit domains. */
-async function syncBlocking() {
-  const overLimit = await tracker.overLimitDomains();
-  await blocker.sync(overLimit);
-  await redirectOpenTabs(overLimit);
+/**
+ * Keeps DNR rules in lockstep with over-limit domains, then fires any
+ * due limit warnings (fire-and-forget: a notifier failure must never
+ * delay or break blocking).
+ * @param {{overLimit: string[], warnings: {domain: string, secondsRemaining: number}[]}} evaluation
+ */
+async function syncBlocking(evaluation) {
+  await blocker.sync(evaluation.overLimit);
+  await redirectOpenTabs(evaluation.overLimit);
+  void warnNotifier.sync(evaluation.warnings).catch(() => {
+    // Warnings are cosmetic; the flag rollback inside handles retries.
+  });
 }
 
 /**
@@ -55,12 +64,20 @@ async function redirectOpenTabs(overLimitDomains) {
   );
 }
 
-const tracker = new UsageTracker(repository, () => syncBlocking());
+// Usage warnings deliberately ride only the alarm tick (not enforce()):
+// warnings at browser startup or on settings changes would be noise, and
+// the 30s tick bounds the delay to well under a minute.
+const tracker = new UsageTracker(repository, (evaluation) =>
+  syncBlocking(evaluation),
+);
 tracker.start();
 
 /**
  * Recomputes blocking for every managed site from persisted state.
  * Used at startup, after popup changes, and on any settings/usage write.
+ * Deliberately does NOT fire limit warnings: those belong to the usage
+ * tick only (a warning at browser launch or on a limit change would be
+ * noise).
  */
 async function enforce() {
   const [settings, usage] = await Promise.all([

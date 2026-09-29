@@ -19,10 +19,20 @@ import { FLUSH_INTERVAL_MINUTES } from './config.js';
 /** Never credit more than this per flush tick (2x interval + slack). */
 const MAX_CREDIT_SECONDS = FLUSH_INTERVAL_MINUTES * 60 * 2 + 30;
 
+/**
+ * Result of one evaluation pass: which sites must be blocked, and which
+ * are approaching their limit (candidates for a warning notification).
+ *
+ * @typedef {Object} UsageEvaluation
+ * @property {string[]} overLimit                            Domains to block
+ * @property {{domain: string, secondsRemaining: number}[]} warnings
+ *           Domains inside the warn window, with time left today
+ */
+
 export class UsageTracker {
   /**
    * @param {import('./repository.js').UsageRepository} repository
-   * @param {(domains: Iterable<string>) => Promise<void>} onUsageChanged
+   * @param {(result: UsageEvaluation) => Promise<void>} onUsageChanged
    */
   constructor(repository, onUsageChanged) {
     this.repository = repository;
@@ -56,7 +66,7 @@ export class UsageTracker {
   /** Alarm callback: accrue time for the domain the user is still on. */
   async tick() {
     await this.flush();
-    await this.onUsageChanged(this.overLimitDomains());
+    await this.onUsageChanged(await this.evaluate());
   }
 
   /**
@@ -84,24 +94,50 @@ export class UsageTracker {
     );
   }
 
-  /** @returns {Promise<Iterable<string>>} domains currently over limit */
-  async overLimitDomains() {
+  /**
+   * Evaluates every managed site against today's usage in a single
+   * storage read: over-limit domains (to block) and domains inside the
+   * warn window (to notify, with their remaining seconds).
+   *
+   * Note: because flushes are clamped (MAX_CREDIT_SECONDS), after sleep
+   * or hibernate a warning can surface slightly later than wall-clock
+   * time would suggest — the same accounting the blocker inherits.
+   *
+   * @returns {Promise<UsageEvaluation>}
+   */
+  async evaluate() {
     const [settings, usage] = await Promise.all([
       this.repository.getSettings(),
       this.repository.getAllUsage(),
     ]);
     const today = todayKey();
-    return Object.entries(settings.sites)
-      .filter(([domain, site]) => {
-        if (!site.enabled || site.limitMinutes <= 0) return false;
-        const record = usage[domain];
-        return (
-          record &&
-          record.date === today &&
-          record.secondsUsed >= site.limitMinutes * 60
-        );
-      })
-      .map(([domain]) => domain);
+    /** @type {string[]} */
+    const overLimit = [];
+    /** @type {{domain: string, secondsRemaining: number}[]} */
+    const warnings = [];
+    for (const [domain, site] of Object.entries(settings.sites)) {
+      if (!site.enabled || site.limitMinutes <= 0) continue;
+      const record = usage[domain];
+      if (record && record.date === today) {
+        if (record.secondsUsed >= site.limitMinutes * 60) {
+          overLimit.push(domain);
+          continue;
+        }
+        if (
+          LimitPolicy.isInWarnWindow(
+            site,
+            record,
+            (settings.warnMinutesBefore ?? 0) * 60,
+          )
+        ) {
+          warnings.push({
+            domain,
+            secondsRemaining: LimitPolicy.secondsRemaining(site, record),
+          });
+        }
+      }
+    }
+    return { overLimit, warnings };
   }
 
   /** @returns {Promise<string|null>} base domain of the focused tab, if managed */

@@ -249,7 +249,9 @@ body.options-mode .limit-label {
 }
 
 /* Learning-card topic picker (options mode only). */
-#topics-section {
+#topics-section,
+/* Limit-warning setting (options mode only). */
+#warn-section {
   margin: 14px 0 12px;
   padding: 10px 12px;
   background: var(--card);
@@ -268,6 +270,18 @@ body.options-mode .limit-label {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
+}
+
+/* Warn-minutes input row inside #warn-section. */
+.warn-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.warn-setting input {
+  width: 58px;
 }
 
 /* Chips: the checkbox stays in the DOM for state + keyboard access,

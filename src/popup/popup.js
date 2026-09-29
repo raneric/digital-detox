@@ -41,6 +41,8 @@ const emptyEl = document.getElementById("empty-state");
 const confirmDialog = document.getElementById("confirm-dialog");
 const topicsSection = document.getElementById("topics-section");
 const topicsList = document.getElementById("topics-list");
+const warnSection = document.getElementById("warn-section");
+const warnMinutesInput = document.getElementById("warn-minutes");
 
 const TOPIC_LABELS = {
   wellbeing: "Wellbeing",
@@ -206,12 +208,29 @@ async function renderTopics(settings) {
   );
 }
 
+/**
+ * Options mode only: the global "warn N minutes before the limit"
+ * setting. Uses SAVE_SETTINGS like every other settings change.
+ */
+async function renderWarnSetting(settings) {
+  if (!IS_OPTIONS_MODE) return;
+  warnSection.hidden = false;
+  warnMinutesInput.value = String(settings.warnMinutesBefore ?? 0);
+}
+
+warnMinutesInput.addEventListener("change", async () => {
+  const { settings: current } = await BackgroundClient.getState();
+  current.warnMinutesBefore = Math.max(0, Math.min(120, Number(warnMinutesInput.value) || 0));
+  await BackgroundClient.saveSettings(current);
+});
+
 /** Loads state and renders the site list. */
 async function render() {
   const { settings, usage } = await BackgroundClient.getState();
   const sites = Object.values(settings.sites);
   emptyEl.hidden = sites.length > 0;
   await renderTopics(settings);
+  await renderWarnSetting(settings);
   listEl.replaceChildren(
     ...sites.map((site) => {
       const row = new SiteRow(site, usage[site.domain] || null, {

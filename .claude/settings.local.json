@@ -6,7 +6,9 @@
       "Bash(node --check src/background/usage-tracker.js)",
       "Bash(python3 -c \"import json; json.load\\(open\\('manifest.json'\\)\\)\")",
       "Bash(node --check src/popup/popup.js)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('/home/eric/Documents/Project/Projet_perso/reel_rest/manifest.json'\\)\\); print\\('manifest OK'\\)\")",
+      "Bash(git -C /home/eric/Documents/Project/Projet_perso/reel_rest status --short -- src/assets/)"
     ]
   }
 }

@@ -8,7 +8,8 @@
     "tabs",
     "storage",
     "alarms",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "notifications"
   ],
   "background": {
     "service_worker": "src/background/main.js",
