@@ -362,23 +362,73 @@ body.options-mode .limit-label {
   text-decoration: underline;
 }
 
-/* Confirm dialog for destructive actions on the options page. */
+/* Confirm dialog for destructive actions and limit extensions. */
 dialog {
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: none;
+  border-radius: 16px;
   background: var(--card);
   color: var(--fg);
-  padding: 16px;
-  width: 280px;
+  padding: 22px 20px 16px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
 }
 
+/* Frosted dim behind the dialog. */
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+}
+
+/* Little pop-in when the dialog opens. */
+dialog[open] {
+  animation: dialog-pop 0.18s ease-out;
+}
+
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+dialog .dialog-emoji {
+  margin: 0 0 8px;
+  font-size: 36px;
+  line-height: 1;
+}
+
+dialog .dialog-text {
+  margin: 0;
+  line-height: 1.5;
 }
 
 dialog .dialog-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 16px;
+}
+
+/* Big equal-width tap targets. */
+dialog .dialog-actions button {
+  flex: 1;
+  padding: 8px 12px;
+}
+
+dialog .confirm-no {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+dialog .confirm-no:hover {
+  background: var(--bg);
+}
+
+dialog .confirm-yes {
+  min-width: 96px;
 }

@@ -63,10 +63,15 @@ if (IS_OPTIONS_MODE) {
   document.body.classList.add("options-mode");
 }
 
-/** Browser-style confirmation via <dialog>. Resolves true when accepted. */
-function confirmAction(message) {
+/**
+ * Browser-style confirmation via <dialog>. Resolves true when accepted.
+ * @param {string} message
+ * @param {string} [emoji] big decorative icon shown above the message
+ */
+function confirmAction(message, emoji = "🤔") {
   return new Promise((resolve) => {
     confirmDialog.querySelector(".dialog-text").textContent = message;
+    confirmDialog.querySelector(".dialog-emoji").textContent = emoji;
     const yes = confirmDialog.querySelector(".confirm-yes");
     const no = confirmDialog.querySelector(".confirm-no");
     const done = (result) => {
@@ -93,14 +98,14 @@ function confirmAction(message) {
  * @type {string[]}
  */
 const EXTEND_EXCUSES = [
-  "'Just {extra} more minutes' ; the most expensive sentence on the internet. Extend {domain} to {total} min?",
-  "{domain} just did a happy little dance. It knows something you don't. Grant {extra} more minutes?",
-  "Your future self just sighed from 2043. Extend {domain} to {total} min?",
-  "Breaking news: local human negotiates with their own attention span. Extend {domain} by {extra} min?",
-  "{domain} has requested {extra} more minutes of your one wild and precious life. Approve?",
-  "Plot twist: in {extra} minutes you'll be deep in 'just one more video' territory. Extend {domain} anyway?",
-  "The doomscroll demands a tribute: {extra} more minutes. Pay {domain} its ransom?",
-  "Adding {extra} min to {domain}. This dialog will judge you silently either way. Confirm?",
+  "'Just {extra} more minutes' ; the most expensive sentence on the internet. 😅 Extend {domain} to {total} min?",
+  "🕺 {domain} just did a happy little dance. It knows something you don't. Grant {extra} more minutes?",
+  "🧓 Your future self just sighed from 2043. Extend {domain} to {total} min? 😮‍💨",
+  "📰 BREAKING: local human negotiates with their own attention span. Extend {domain} by {extra} min? 🎤",
+  "🌱 {domain} has requested {extra} more minutes of your one wild and precious life. Approve? 🙏",
+  "🍿 Plot twist: in {extra} minutes you'll be deep in 'just one more video' territory. Extend {domain} anyway? 📺",
+  "🌀 The doomscroll demands a tribute: {extra} more minutes. 💸 Pay {domain} its ransom?",
+  "👀 Adding {extra} min to {domain}. This dialog will judge you silently either way. Confirm? 🫡",
 ];
 
 /**
@@ -117,6 +122,43 @@ function extendExcuse(domain, oldLimit, newLimit) {
     .replaceAll("{domain}", domain)
     .replaceAll("{extra}", String(newLimit - oldLimit))
     .replaceAll("{total}", String(newLimit));
+}
+
+/**
+ * Same spirit as EXTEND_EXCUSES, but for wiping a day's usage —
+ * the user is erasing the evidence. {domain} is filled in by
+ * resetExcuse(); a random one is picked each time.
+ * @type {string[]}
+ */
+const RESET_EXCUSES = [
+  "🧹 Sweeping today's sins under the rug for {domain}? The rug accepts. Reset?",
+  "🪄 Abracadabra! {domain}'s usage today — poof, gone. Reset?",
+  "🕵️ Erasing the evidence, are we? Reset today's usage for {domain}?",
+  "⏪ Rewind engaged! {domain} gets a brand-new day. Confirm the reset?",
+  "🧼 A fresh start for {domain} — the algorithm will forget all about it. Reset?",
+  "🎭 Today's usage for {domain}? Never happened. *wink* Reset?",
+];
+
+/**
+ * The whole-house variant of RESET_EXCUSES, for the "reset ALL sites"
+ * button — wiping everything deserves its own drama.
+ * @type {string[]}
+ */
+const RESET_ALL_EXCUSES = [
+  "🔥 Nuclear option: reset today's usage for ALL sites? Bold. Very bold.",
+  "🌋 Time travel confirmed: today never happened for anyone. Reset ALL sites?",
+  "🧹 Sweeping the whole house — ALL sites get a fresh start. Confirm?",
+];
+
+/**
+ * Builds the confirmation message for a usage reset (one site or all).
+ * @param {string|undefined} domain
+ * @returns {string}
+ */
+function resetExcuse(domain) {
+  const pool = domain ? RESET_EXCUSES : RESET_ALL_EXCUSES;
+  const message = pool[Math.floor(Math.random() * pool.length)];
+  return domain ? message.replaceAll("{domain}", domain) : message;
 }
 
 /** One row of UI bound to one site entry. */
@@ -161,6 +203,7 @@ class SiteRow {
       if (IS_OPTIONS_MODE && newLimit > site.limitMinutes) {
         const ok = await confirmAction(
           extendExcuse(site.domain, site.limitMinutes, newLimit),
+          "⏳",
         );
         if (!ok) {
           limitEl.value = String(site.limitMinutes); // revert on cancel
@@ -310,6 +353,7 @@ async function removeSite(domain) {
   if (IS_OPTIONS_MODE) {
     const ok = await confirmAction(
       'Remove "' + domain + '"? Its usage history will be deleted too.',
+      "🗑️",
     );
     if (!ok) return;
   }
@@ -322,10 +366,7 @@ async function removeSite(domain) {
 /** @param {string} [domain] */
 async function resetOne(domain) {
   if (IS_OPTIONS_MODE) {
-    const ok = await confirmAction(
-      "Reset today's usage" +
-        (domain ? ' for "' + domain + '"?' : " for ALL sites?"),
-    );
+    const ok = await confirmAction(resetExcuse(domain), domain ? "🧹" : "🔥");
     if (!ok) return;
   }
   await BackgroundClient.resetUsage(domain);
@@ -346,6 +387,7 @@ addForm.addEventListener("submit", async (event) => {
     if (limitMinutes > oldLimit) {
       const ok = await confirmAction(
         extendExcuse(domain, oldLimit, limitMinutes),
+        "⏳",
       );
       if (!ok) return;
     }
