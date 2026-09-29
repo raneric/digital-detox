@@ -86,6 +86,39 @@ function confirmAction(message) {
   });
 }
 
+/**
+ * Shown when the user raises a daily limit — raising your own screen-time
+ * cap deserves a little friendly judgement. {domain}, {extra} and {total}
+ * are filled in by extendExcuse(); a random one is picked each time.
+ * @type {string[]}
+ */
+const EXTEND_EXCUSES = [
+  "'Just {extra} more minutes' ; the most expensive sentence on the internet. Extend {domain} to {total} min?",
+  "{domain} just did a happy little dance. It knows something you don't. Grant {extra} more minutes?",
+  "Your future self just sighed from 2043. Extend {domain} to {total} min?",
+  "Breaking news: local human negotiates with their own attention span. Extend {domain} by {extra} min?",
+  "{domain} has requested {extra} more minutes of your one wild and precious life. Approve?",
+  "Plot twist: in {extra} minutes you'll be deep in 'just one more video' territory. Extend {domain} anyway?",
+  "The doomscroll demands a tribute: {extra} more minutes. Pay {domain} its ransom?",
+  "Adding {extra} min to {domain}. This dialog will judge you silently either way. Confirm?",
+];
+
+/**
+ * Builds the confirmation message for raising a site's daily limit.
+ * @param {string} domain
+ * @param {number} oldLimit previous limit in minutes
+ * @param {number} newLimit new limit in minutes
+ * @returns {string}
+ */
+function extendExcuse(domain, oldLimit, newLimit) {
+  const message =
+    EXTEND_EXCUSES[Math.floor(Math.random() * EXTEND_EXCUSES.length)];
+  return message
+    .replaceAll("{domain}", domain)
+    .replaceAll("{extra}", String(newLimit - oldLimit))
+    .replaceAll("{total}", String(newLimit));
+}
+
 /** One row of UI bound to one site entry. */
 class SiteRow {
   /**
@@ -110,8 +143,9 @@ class SiteRow {
     nameEl.textContent = site.domain;
     nameEl.classList.toggle("over-limit", this.overLimit);
     limitEl.value = String(site.limitMinutes);
-    limitLabelEl.textContent =
-      (site.limitMinutes ? site.limitMinutes + " min / day" : "unlimited");
+    limitLabelEl.textContent = site.limitMinutes
+      ? site.limitMinutes + " min / day"
+      : "unlimited";
     usageEl.textContent = SiteRow.formatUsage(usage, site, this.overLimit);
     usageEl.classList.toggle("over-limit", this.overLimit);
 
@@ -120,10 +154,22 @@ class SiteRow {
     fillEl.classList.toggle("warn", ratio >= 0.7 && ratio < 1);
     fillEl.classList.toggle("over", ratio >= 1);
 
-    limitEl.addEventListener("change", () => {
+    limitEl.addEventListener("change", async () => {
+      const newLimit = Math.max(0, Number(limitEl.value) || 0);
+      // Raising a limit is a tempting-thing-by-design: confirm it, and only
+      // persist on acceptance. Lowering stays friction-free.
+      if (IS_OPTIONS_MODE && newLimit > site.limitMinutes) {
+        const ok = await confirmAction(
+          extendExcuse(site.domain, site.limitMinutes, newLimit),
+        );
+        if (!ok) {
+          limitEl.value = String(site.limitMinutes); // revert on cancel
+          return;
+        }
+      }
       onChange({
         ...site,
-        limitMinutes: Math.max(0, Number(limitEl.value) || 0),
+        limitMinutes: newLimit,
       });
     });
     this.root.querySelector(".remove").addEventListener("click", onRemove);
@@ -154,7 +200,8 @@ class SiteRow {
   /** @returns {number} fraction of the daily limit consumed, 0..1+ */
   static progressRatio(site, usage) {
     if (!site.enabled || site.limitMinutes <= 0) return 0;
-    const secondsToday = usage && usage.date === SiteRow.todayKey() ? usage.secondsUsed : 0;
+    const secondsToday =
+      usage && usage.date === SiteRow.todayKey() ? usage.secondsUsed : 0;
     return secondsToday / (site.limitMinutes * 60);
   }
 
@@ -168,7 +215,8 @@ class SiteRow {
   }
 
   static formatUsage(usage, site, overLimit) {
-    const mins = usage && usage.secondsUsed ? Math.floor(usage.secondsUsed / 60) : 0;
+    const mins =
+      usage && usage.secondsUsed ? Math.floor(usage.secondsUsed / 60) : 0;
     if (overLimit) return "used " + mins + " m - blocked until tomorrow";
     return mins + " m used of " + (site.limitMinutes || "unlimited");
   }
@@ -204,7 +252,7 @@ async function renderTopics(settings) {
       text.textContent = TOPIC_LABELS[topic];
       label.append(box, text);
       return label;
-    })
+    }),
   );
 }
 
@@ -220,7 +268,10 @@ async function renderWarnSetting(settings) {
 
 warnMinutesInput.addEventListener("change", async () => {
   const { settings: current } = await BackgroundClient.getState();
-  current.warnMinutesBefore = Math.max(0, Math.min(120, Number(warnMinutesInput.value) || 0));
+  current.warnMinutesBefore = Math.max(
+    0,
+    Math.min(120, Number(warnMinutesInput.value) || 0),
+  );
   await BackgroundClient.saveSettings(current);
 });
 
@@ -239,7 +290,7 @@ async function render() {
         onReset: () => resetOne(site.domain),
       });
       return row.render();
-    })
+    }),
   );
 }
 
@@ -258,7 +309,7 @@ async function persist(site) {
 async function removeSite(domain) {
   if (IS_OPTIONS_MODE) {
     const ok = await confirmAction(
-      'Remove "' + domain + '"? Its usage history will be deleted too.'
+      'Remove "' + domain + '"? Its usage history will be deleted too.',
     );
     if (!ok) return;
   }
@@ -273,7 +324,7 @@ async function resetOne(domain) {
   if (IS_OPTIONS_MODE) {
     const ok = await confirmAction(
       "Reset today's usage" +
-        (domain ? ' for "' + domain + '"?' : " for ALL sites?")
+        (domain ? ' for "' + domain + '"?' : " for ALL sites?"),
     );
     if (!ok) return;
   }
@@ -289,6 +340,15 @@ addForm.addEventListener("submit", async (event) => {
   const limitMinutes = Math.max(0, Number(limitInput.value) || 0);
   const { settings } = await BackgroundClient.getState();
   if (settings.sites[domain]) {
+    const oldLimit = settings.sites[domain].limitMinutes;
+    // Same friction as editing a row: raising an existing limit needs
+    // confirmation, in popup mode too (the form is the only editor there).
+    if (limitMinutes > oldLimit) {
+      const ok = await confirmAction(
+        extendExcuse(domain, oldLimit, limitMinutes),
+      );
+      if (!ok) return;
+    }
     settings.sites[domain].limitMinutes = limitMinutes;
   } else {
     settings.sites[domain] = { domain, limitMinutes, enabled: true };
@@ -299,6 +359,8 @@ addForm.addEventListener("submit", async (event) => {
   await render();
 });
 
-document.getElementById("reset-all").addEventListener("click", () => resetOne());
+document
+  .getElementById("reset-all")
+  .addEventListener("click", () => resetOne());
 
 render();
