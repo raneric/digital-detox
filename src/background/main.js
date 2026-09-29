@@ -10,6 +10,7 @@ import { WarnNotifier } from './warn-notifier.js';
 import { LimitPolicy } from './limit-policy.js';
 import { DomainMatcher } from './domain-matcher.js';
 import { maybeRefresh } from './card-feed.js';
+import { SettingsSync } from './settings-sync.js';
 import { FLUSH_INTERVAL_MINUTES } from './config.js';
 
 const blocker = new SiteBlocker();
@@ -73,6 +74,17 @@ const tracker = new UsageTracker(repository, (evaluation) =>
 tracker.start();
 
 /**
+ * Applies settings adopted from another device: re-enforces blocking and
+ * refreshes the card cache (topics may have changed). Mirrors what the
+ * SAVE_SETTINGS message does, without re-publishing to sync.
+ */
+const settingsSync = new SettingsSync(repository, async () => {
+  await enforce();
+  await tracker.handleFocusEvent(); // re-detect under the new limits
+  void refreshCards();
+});
+
+/**
  * Recomputes blocking for every managed site from persisted state.
  * Used at startup, after popup changes, and on any settings/usage write.
  * Deliberately does NOT fire limit warnings: those belong to the usage
@@ -104,12 +116,14 @@ async function ensureAlarm() {
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureAlarm();
+  await settingsSync.reconcile();
   await enforce();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await blocker.hydrate();
   await ensureAlarm();
+  await settingsSync.reconcile();
   await enforce();
 });
 
@@ -121,8 +135,11 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 });
 
-// One-shot flush on startup of a new worker (covers cold starts).
+// One-shot flush on startup of a new worker (covers cold starts). The
+// sync reconcile runs first so adopted settings shape the first enforce.
+settingsSync.start();
 void (async () => {
+  await settingsSync.reconcile();
   await blocker.hydrate();
   await enforce();
 })();

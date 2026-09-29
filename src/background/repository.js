@@ -10,6 +10,10 @@ const KEYS = Object.freeze({
   SETTINGS: 'settings',
   USAGE: 'usage',
   WARNED: 'warned',
+  /** chrome.storage.sync key holding {settings, updatedAt} for device sync */
+  SETTINGS_SYNC: 'settingsSync',
+  /** chrome.storage.local key holding {updatedAt} of the last local save */
+  SETTINGS_META: 'settingsMeta',
 });
 
 class UsageRepository {
@@ -22,9 +26,65 @@ class UsageRepository {
     return { ...defaultSettings, ...(result[KEYS.SETTINGS] ?? {}) };
   }
 
-  /** @param {Settings} settings */
+  /**
+   * Saves settings locally and (best effort) mirrors them to
+   * chrome.storage.sync so other devices pick them up.
+   * @param {Settings} settings
+   */
   async saveSettings(settings) {
-    await chrome.storage.local.set({ [KEYS.SETTINGS]: settings });
+    const updatedAt = Date.now();
+    await this.saveLocalSettings(settings, updatedAt);
+    await this.pushSettingsToSync(settings, updatedAt);
+  }
+
+  /**
+   * Saves settings locally without touching the sync mirror (used when
+   * adopting a remote snapshot, so it isn't echoed back to sync).
+   * @param {Settings} settings
+   * @param {number} updatedAt timestamp to record as the local save time
+   */
+  async saveLocalSettings(settings, updatedAt) {
+    await chrome.storage.local.set({
+      [KEYS.SETTINGS]: settings,
+      [KEYS.SETTINGS_META]: { updatedAt },
+    });
+  }
+
+  /**
+   * Writes the sync mirror. Best effort: quota errors or signed-out
+   * states leave settings local-only until the next successful save.
+   * @param {Settings} settings
+   * @param {number} updatedAt
+   */
+  async pushSettingsToSync(settings, updatedAt) {
+    try {
+      await chrome.storage.sync.set({
+        [KEYS.SETTINGS_SYNC]: { settings, updatedAt },
+      });
+    } catch {
+      // chrome.storage.sync quota (8KB/item) or transient failure —
+      // local settings are already saved; sync retries on the next save.
+    }
+  }
+
+  /**
+   * @returns {Promise<{settings: Settings, updatedAt: number}|null>} the
+   * mirrored settings snapshot from chrome.storage.sync, if any
+   */
+  async getSyncedSnapshot() {
+    const result = await chrome.storage.sync.get(KEYS.SETTINGS_SYNC);
+    return result[KEYS.SETTINGS_SYNC] ?? null;
+  }
+
+  /**
+   * Epoch ms of the last local settings save; 0 when never saved
+   * (fresh install), which keeps defaults from clobbering a peer's
+   * customized synced settings.
+   * @returns {Promise<number>}
+   */
+  async getSettingsUpdatedAt() {
+    const result = await chrome.storage.local.get(KEYS.SETTINGS_META);
+    return result[KEYS.SETTINGS_META]?.updatedAt ?? 0;
   }
 
   /**

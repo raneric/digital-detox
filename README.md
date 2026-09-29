@@ -50,6 +50,15 @@ the site's tab is open _and in front of you_ — switching tabs pauses the
 clock, and so does going idle (no input for a minute) or locking your
 machine. Each day at midnight, every counter starts fresh.
 
+### Your limits follow you across devices
+
+Change a limit or your topics on your laptop and your desktop picks it up
+automatically — settings ride Chrome's built-in sync (same Chrome profile,
+signed in with sync on). Time you've *spent* is deliberately per-device:
+each machine tracks its own scrolling. If sync isn't available (signed out,
+or Chrome sync disabled), the extension works exactly as before — changes
+just stay local.
+
 ### A heads-up before time runs out
 
 No one reads a clock while scrolling, so ReelRest taps you on the shoulder:
@@ -96,12 +105,17 @@ deck cycles. Two ways cards stay interesting:
 
 ### Privacy
 
-Everything stays on your computer. The extension has no account, no server,
-no analytics: it only stores your site list, today's usage, and a small
-learning-card cache in your browser's local storage. The only network
-request it makes is the daily article-feed refresh from medium.com — skip
-the topic feature and the extension never touches the network. Uninstalling
-deletes all of it.
+Everything stays on your computer — except one thing: your **settings**
+(site list, limits, topics) are mirrored through Chrome's built-in settings
+sync, so all your devices share the same limits. That is Chrome's own
+`chrome.storage.sync` channel — it goes to your Chrome account, if you're
+signed in with sync enabled, and to no one else; there is no ReelRest
+account, no server, no analytics. **Usage counters stay on your computer.**
+Otherwise the extension only stores today's usage and a small learning-card
+cache in your browser's local storage. The only network request it makes
+itself is the daily article-feed refresh from medium.com — skip the topic
+feature and the extension never touches the network. Uninstalling deletes
+all of it.
 
 ---
 
@@ -124,6 +138,7 @@ dependencies, no TypeScript.
 | `src/background/site-blocker.js`   | `declarativeNetRequest` dynamic rules                |
 | `src/background/warn-notifier.js`  | Once-per-day pre-limit warning notifications         |
 | `src/background/card-feed.js`      | Learning-card RSS refresh (Medium feeds) + cache     |
+| `src/background/settings-sync.js`  | Settings sync across devices (`chrome.storage.sync`) |
 | `src/background/config.js`         | Shared constants                                     |
 | `src/popup/*`                      | Settings UI (talks to the worker via messages only)  |
 | `src/blocked/*`                    | The block page users land on                         |

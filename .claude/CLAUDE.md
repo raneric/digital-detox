@@ -23,6 +23,7 @@ src/background/usage-tracker.js # accrues active-tab time via events + 30s alarm
 src/background/site-blocker.js  # declarativeNetRequest dynamic rules, deterministic rule IDs
 src/background/warn-notifier.js # one-per-day "N minutes left" chrome.notifications warning
 src/background/card-feed.js     # learning-card RSS refresh (Medium tag feeds) + cache
+src/background/settings-sync.js # settings sync across devices (chrome.storage.sync)
 src/background/config.js        # shared constants
 src/popup/*                     # settings UI (talks to worker via messages only)
 src/blocked/*                   # the block page users land on
@@ -33,7 +34,7 @@ src/blocked/*                   # the block page users land on
 - **No timers in the service worker.** MV3 kills workers aggressively. All correctness comes from event timestamps (`lastTick`) + the `usage-flush` alarm + persisted storage. A `setInterval`-based approach will silently lose or double-count time.
 - **Time accrues only on the focused active tab, and only while the user is active.** `UsageTracker.detectActiveDomain()` defines what counts; `chrome.idle` (`onStateChanged` → `isIdle`) pauses accrual when the user is AFK/locked; flushing clamps elapsed time (`MAX_CREDIT_SECONDS`) so sleep/hibernate never dumps hours into one tick.
 - **DNR rule IDs must stay deterministic** (`SiteBlocker.ruleIdFor` hashes the domain). Never generate random IDs — sync add/remove relies on stability across worker restarts.
-- **Storage shape:** `settings.sites` is keyed by base domain; `usage` records are `{date: 'YYYY-MM-DD', secondsUsed}`; `warned` maps domain → 'YYYY-MM-DD' last warned (per-day de-dup for warnings). Daily reset is implicit — records dated before today are ignored/reset by `LimitPolicy`, no midnight alarm exists.
+- **Storage shape:** `settings.sites` is keyed by base domain; `usage` records are `{date: 'YYYY-MM-DD', secondsUsed}`; `warned` maps domain → 'YYYY-MM-DD' last warned (per-day de-dup for warnings). `settingsMeta.updatedAt` timestamps the last local save; `settingsSync` (in `chrome.storage.sync`) holds the `{settings, updatedAt}` mirror. Daily reset is implicit — records dated before today are ignored/reset by `LimitPolicy`, no midnight alarm exists.
 - **Popup duplicates the over-limit check only for display.** The background worker is the single source of truth for actual blocking.
 
 ## Conventions
@@ -50,5 +51,5 @@ src/blocked/*                   # the block page users land on
 - [ ] Weekly/monthly usage stats view (usage history currently only keeps today).
 - [x] Proper public-suffix handling in `DomainMatcher` — `src/background/public-suffixes.js` bundles the PSL ICANN section (regenerate via `node tools/generate-public-suffixes.mjs`).
 - [ ] Extension icons (16/48/128 PNG) + action badge showing remaining minutes.
-- [ ] Sync settings across devices (`chrome.storage.sync`).
+- [x] Sync settings across devices — `settings-sync.js` mirrors `settings` to `chrome.storage.sync` (`settingsSync` key: `{settings, updatedAt}`), newest-wins; `usage`/`warned` stay local. Fresh installs (never saved locally) never push defaults.
 - [x] Idle detection (`chrome.idle`) so AFK time doesn't count (60s threshold, `IDLE_DETECTION_INTERVAL_SECONDS` in `config.js`).
