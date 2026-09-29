@@ -10,11 +10,13 @@
  *    while the user reads one page without any events firing.
  *  - Elapsed time per flush is clamped so sleep/hibernate can't dump
  *    hours of "usage" into a single tick.
+ *  - `chrome.idle` pauses accrual while the user is AFK or the machine
+ *    is locked; the idle stretch itself is discarded, not credited.
  */
 
 import { DomainMatcher } from './domain-matcher.js';
 import { LimitPolicy, todayKey } from './limit-policy.js';
-import { FLUSH_INTERVAL_MINUTES } from './config.js';
+import { FLUSH_INTERVAL_MINUTES, IDLE_DETECTION_INTERVAL_SECONDS } from './config.js';
 
 /** Never credit more than this per flush tick (2x interval + slack). */
 const MAX_CREDIT_SECONDS = FLUSH_INTERVAL_MINUTES * 60 * 2 + 30;
@@ -41,6 +43,8 @@ export class UsageTracker {
     this.activeDomain = null;
     /** @type {number} epoch ms of the last flush */
     this.lastTick = Date.now();
+    /** @type {boolean} true while chrome.idle reports the user away/locked */
+    this.isIdle = false;
   }
 
   /** Registers all listeners. Called once at service-worker startup. */
@@ -52,6 +56,10 @@ export class UsageTracker {
       }
     });
     chrome.windows.onFocusChanged.addListener(() => this.handleFocusEvent());
+    chrome.idle.setDetectionInterval(IDLE_DETECTION_INTERVAL_SECONDS);
+    chrome.idle.onStateChanged.addListener((state) => {
+      void this.handleIdleState(state);
+    });
   }
 
   /**
@@ -61,6 +69,24 @@ export class UsageTracker {
   async handleFocusEvent() {
     await this.flush();
     this.activeDomain = await this.detectActiveDomain();
+  }
+
+  /**
+   * chrome.idle transition: the moment the user goes idle/locked still
+   * counts (they were just active), so we flush it before pausing. Time
+   * only resumes on "active", and the AFK stretch is discarded by
+   * resetting lastTick rather than letting it ride the clamp.
+   * @param {chrome.idle.IdleState} state
+   */
+  async handleIdleState(state) {
+    if (state === 'active') {
+      this.isIdle = false;
+      this.lastTick = Date.now(); // discard AFK time — never credit it
+      this.activeDomain = await this.detectActiveDomain();
+      return;
+    }
+    await this.flush(); // credit up to the idle boundary
+    this.isIdle = true;
   }
 
   /** Alarm callback: accrue time for the domain the user is still on. */
@@ -82,7 +108,9 @@ export class UsageTracker {
     );
     this.lastTick = now;
 
-    if (!this.activeDomain || elapsed <= 0) {
+    // AFK time does not count (chrome.idle); the flush interval still
+    // advances so the resumption tick has nothing stale to credit.
+    if (this.isIdle || !this.activeDomain || elapsed <= 0) {
       return;
     }
     const site = (await this.repository.getSettings()).sites[this.activeDomain];

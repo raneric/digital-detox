@@ -31,7 +31,7 @@ src/blocked/*                   # the block page users land on
 ## Critical invariants — do not break
 
 - **No timers in the service worker.** MV3 kills workers aggressively. All correctness comes from event timestamps (`lastTick`) + the `usage-flush` alarm + persisted storage. A `setInterval`-based approach will silently lose or double-count time.
-- **Time accrues only on the focused active tab.** `UsageTracker.detectActiveDomain()` defines what counts; flushing clamps elapsed time (`MAX_CREDIT_SECONDS`) so sleep/hibernate never dumps hours into one tick.
+- **Time accrues only on the focused active tab, and only while the user is active.** `UsageTracker.detectActiveDomain()` defines what counts; `chrome.idle` (`onStateChanged` → `isIdle`) pauses accrual when the user is AFK/locked; flushing clamps elapsed time (`MAX_CREDIT_SECONDS`) so sleep/hibernate never dumps hours into one tick.
 - **DNR rule IDs must stay deterministic** (`SiteBlocker.ruleIdFor` hashes the domain). Never generate random IDs — sync add/remove relies on stability across worker restarts.
 - **Storage shape:** `settings.sites` is keyed by base domain; `usage` records are `{date: 'YYYY-MM-DD', secondsUsed}`; `warned` maps domain → 'YYYY-MM-DD' last warned (per-day de-dup for warnings). Daily reset is implicit — records dated before today are ignored/reset by `LimitPolicy`, no midnight alarm exists.
 - **Popup duplicates the over-limit check only for display.** The background worker is the single source of truth for actual blocking.
@@ -40,15 +40,15 @@ src/blocked/*                   # the block page users land on
 
 - Plain ES modules, no TypeScript, no bundler, no external dependencies.
 - JSDoc typedefs stand in for types (`SiteLimit`, `UsageRecord`, `Settings` in `repository.js`) — keep them updated when changing shapes.
-- Permissions are minimal (`tabs`, `storage`, `alarms`, `declarativeNetRequest`, `notifications` for the pre-limit warning, plus `host_permissions` for `https://medium.com/*` used only by the learning-card feed refresh) — don't add permissions without strong justification.
+- Permissions are minimal (`tabs`, `storage`, `alarms`, `declarativeNetRequest`, `notifications` for the pre-limit warning, `idle` so AFK time doesn't count, plus `host_permissions` for `https://medium.com/*` used only by the learning-card feed refresh) — don't add permissions without strong justification.
 
 ## Planned improvements (TODO)
 
-- [ ] Tests: `limit-policy.js` and `domain-matcher.js` are pure — wire up Vitest (or plain `node:test`) first.
+- [ ] Tests: `limit-policy.js` is pure — wire up Vitest (or plain `node:test`) first. `domain-matcher.js` already has `tests/domain-matcher.test.js` (`node --test tests/domain-matcher.test.js`).
 - [x] Warning notification N minutes before a limit hits (`chrome.notifications`) — global `warnMinutesBefore` setting, fired once per domain per day from the usage tick.
 - [ ] "Pause for 5 minutes" grace period with confirmation friction.
 - [ ] Weekly/monthly usage stats view (usage history currently only keeps today).
-- [ ] Proper public-suffix handling in `DomainMatcher` (current 2-label heuristic fails for `co.uk` style domains).
+- [x] Proper public-suffix handling in `DomainMatcher` — `src/background/public-suffixes.js` bundles the PSL ICANN section (regenerate via `node tools/generate-public-suffixes.mjs`).
 - [ ] Extension icons (16/48/128 PNG) + action badge showing remaining minutes.
 - [ ] Sync settings across devices (`chrome.storage.sync`).
-- [ ] Idle detection (`chrome.idle`) so AFK time doesn't count.
+- [x] Idle detection (`chrome.idle`) so AFK time doesn't count (60s threshold, `IDLE_DETECTION_INTERVAL_SECONDS` in `config.js`).

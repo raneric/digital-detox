@@ -36,7 +36,10 @@ Click the shield icon. In the popup:
 
 That's it. From now on, the extension quietly counts the time you spend on
 that site (on its subdomains too: `www.instagram.com` counts as
-`instagram.com`). The popup shows, for each site:
+`instagram.com`) — and only while you're actually there: switching tabs
+pauses the clock, and after a minute of no keyboard or mouse activity
+(machine locked, or you just walked away) it pauses too. The popup shows,
+for each site:
 
 - a **progress bar** — green while you have time left, amber when you're
   close, red when you're out
@@ -44,7 +47,8 @@ that site (on its subdomains too: `www.instagram.com` counts as
 
 You can adjust a site's limit anytime from the popup. Time only counts while
 the site's tab is open _and in front of you_ — switching tabs pauses the
-clock. Each day at midnight, every counter starts fresh.
+clock, and so does going idle (no input for a minute) or locking your
+machine. Each day at midnight, every counter starts fresh.
 
 ### A heads-up before time runs out
 
@@ -112,7 +116,9 @@ dependencies, no TypeScript.
 | ---------------------------------- | ---------------------------------------------------- |
 | `src/background/main.js`           | Composition root: wires listeners, messages, alarms  |
 | `src/background/repository.js`     | Storage abstraction (`chrome.storage.local`)         |
-| `src/background/domain-matcher.js` | URL → base-domain extraction and matching            |
+| `src/background/domain-matcher.js` | URL → base-domain extraction and matching (Public Suffix List algorithm) |
+| `src/background/public-suffixes.js` | Generated PSL data (ICANN section) — regenerate with `node tools/generate-public-suffixes.mjs` |
+| `tests/domain-matcher.test.js`     | `node:test` unit tests for the domain matcher        |
 | `src/background/limit-policy.js`   | Pure limit logic (over-limit? remaining? accumulate) |
 | `src/background/usage-tracker.js`  | Accrues active-tab time via events + alarm           |
 | `src/background/site-blocker.js`   | `declarativeNetRequest` dynamic rules                |
@@ -132,7 +138,7 @@ page) exposes reset/remove actions behind confirmation dialogs.
   extension's **Reload** arrow on `chrome://extensions` and refresh open tabs.
 - Validate changes: `node --check` every touched JS file;
   `python3 -c "import json; json.load(open('manifest.json'))"` for the
-  manifest.
+  manifest. Run the unit tests with `node --test tests/`.
 - The popup talks to the service worker **only** via
   `chrome.runtime.sendMessage` — no direct storage access from UI code.
 
@@ -160,11 +166,10 @@ page) exposes reset/remove actions behind confirmation dialogs.
   `UsageRecord`, `Settings` in `repository.js`) — keep them updated when
   changing shapes.
 - Keep permissions minimal (`tabs`, `storage`, `alarms`,
-  `declarativeNetRequest`, `notifications`) — don't add permissions without
-  strong justification.
+  `declarativeNetRequest`, `notifications`, `idle`) — don't add permissions
+  without strong justification.
 
 ## Ideas welcome
 
-Weekly usage stats, proper public-suffix handling (`co.uk`-style domains),
-idle detection. See the TODO list in
+Weekly usage stats. See the TODO list in
 [`.claude/CLAUDE.md`](.claude/CLAUDE.md) for the full list.

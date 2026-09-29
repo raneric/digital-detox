@@ -6,6 +6,11 @@ export const RULE_ID_BASE = 100000;
 /** How often accumulated usage is flushed to storage (minutes). */
 export const FLUSH_INTERVAL_MINUTES = 0.5;
 
+// --- Idle detection ---------------------------------------------------------
+
+/** Seconds of no user input after which time stops counting (chrome.idle). */
+export const IDLE_DETECTION_INTERVAL_SECONDS = 60;
+
 // --- Limit warnings ---------------------------------------------------------
 
 /** Default "warn N minutes before the limit" setting; 0 disables warnings. */
