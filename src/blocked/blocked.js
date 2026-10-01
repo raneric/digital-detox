@@ -12,6 +12,9 @@
  */
 
 import { rotateCard, cardsForTopics, recordFeedback } from './card-picker.js';
+// Re-uses the feed's text cleaner so cards cached before a decoding fix
+// still render correctly (cleanText is idempotent on already-clean text).
+import { cleanText } from '../background/card-feed.js';
 
 const TOPIC_LABELS = {
   wellbeing: 'Wellbeing',
@@ -71,10 +74,10 @@ function renderCard(card) {
 
   badge.textContent = TOPIC_LABELS[card.topic] ?? card.topic ?? 'Read';
   badge.className = `badge topic-${card.topic ?? 'other'}`;
-  source.textContent = card.source ?? '';
+  source.textContent = cleanText(card.source ?? '');
   source.hidden = !card.source;
-  title.textContent = card.title;
-  blurb.textContent = card.blurb ?? '';
+  title.textContent = cleanText(card.title);
+  blurb.textContent = cleanText(card.blurb ?? '');
   blurb.hidden = !card.blurb;
 
   if (/^https?:\/\//.test(card.url)) {

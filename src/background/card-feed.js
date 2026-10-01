@@ -26,11 +26,62 @@ export function feedItemId(url) {
   return hash.toString(16).padStart(8, '0');
 }
 
-/** Decodes basic XML entities and strips tags from a snippet. */
-function cleanText(raw) {
-  return raw
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
+/** Named entities beyond the XML five that show up in feed text. */
+const NAMED_ENTITIES = Object.freeze({
+  nbsp: ' ',
+  hellip: '…',
+  lsquo: '‘',
+  rsquo: '’',
+  ldquo: '“',
+  rdquo: '”',
+  mdash: '—',
+  ndash: '–',
+  copy: '©',
+  reg: '®',
+  trade: '™',
+  eacute: 'é',
+  egrave: 'è',
+  euml: 'ë',
+  agrave: 'à',
+  ccedil: 'ç',
+  uuml: 'ü',
+  ouml: 'ö',
+  auml: 'ä',
+  ntilde: 'ñ',
+  iuml: 'ï',
+  ugrave: 'ù',
+  ocirc: 'ô',
+  ecirc: 'ê',
+  acirc: 'â',
+  szlig: 'ß',
+});
+
+/**
+ * Decodes XML/HTML character references (named, decimal, hex) without a
+ * DOM (MV3 workers have none). Unknown names are left as-is.
+ * @param {string} str
+ */
+export function decodeEntities(str) {
+  return str.replace(
+    /&(?:#x([0-9a-fA-F]+)|#([0-9]+)|([a-zA-Z][a-zA-Z0-9]*));/g,
+    (match, hex, dec, name) => {
+      try {
+        if (hex) return String.fromCodePoint(parseInt(hex, 16));
+        if (dec) return String.fromCodePoint(parseInt(dec, 10));
+      } catch {
+        return match; // out-of-range code point — keep the literal
+      }
+      return NAMED_ENTITIES[name] ?? match;
+    },
+  );
+}
+
+/** Decodes entities and strips tags from a feed snippet. */
+export function cleanText(raw) {
+  return decodeEntities(
+    raw.replace(/<[^>]+>/g, ' '),
+  )
+    .replace(/&amp;/g, '&') // decode once more: feeds double-escape "&amp;amp;"
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
