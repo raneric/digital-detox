@@ -94,7 +94,7 @@ const settingsSync = new SettingsSync(repository, async () => {
 async function enforce() {
   const [settings, usage] = await Promise.all([
     repository.getSettings(),
-    repository.getAllUsage(),
+    repository.getAggregatedUsage(),
   ]);
   const overLimit = Object.entries(settings.sites)
     .filter(([domain, site]) => LimitPolicy.isOverLimit(site, usage[domain]))
@@ -151,7 +151,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       case 'GET_STATE': {
         const [settings, usage] = await Promise.all([
           repository.getSettings(),
-          repository.getAllUsage(),
+          repository.getAggregatedUsage(),
         ]);
         sendResponse({ settings, usage });
         break;

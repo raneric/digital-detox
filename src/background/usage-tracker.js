@@ -136,7 +136,7 @@ export class UsageTracker {
   async evaluate() {
     const [settings, usage] = await Promise.all([
       this.repository.getSettings(),
-      this.repository.getAllUsage(),
+      this.repository.getAggregatedUsage(),
     ]);
     const today = todayKey();
     /** @type {string[]} */

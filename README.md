@@ -53,11 +53,14 @@ machine. Each day at midnight, every counter starts fresh.
 ### Your limits follow you across devices
 
 Change a limit or your topics on your laptop and your desktop picks it up
-automatically — settings ride Chrome's built-in sync (same Chrome profile,
-signed in with sync on). Time you've *spent* is deliberately per-device:
-each machine tracks its own scrolling. If sync isn't available (signed out,
-or Chrome sync disabled), the extension works exactly as before — changes
-just stay local.
+automatically — and so does the time you've *spent*: scroll Facebook for
+your whole budget at the office, and it's already blocked when you get
+home. Every machine tracks its own scrolling and the extension adds them
+up for the day (you can't be on two computers at once, so summing is
+exact enough). Everything rides Chrome's built-in sync (same Chrome
+profile, signed in with sync on). If sync isn't available — signed out,
+or Chrome sync disabled — the extension works exactly as before: changes
+and counters just stay local to that machine.
 
 ### A heads-up before time runs out
 
@@ -105,17 +108,15 @@ deck cycles. Two ways cards stay interesting:
 
 ### Privacy
 
-Everything stays on your computer — except one thing: your **settings**
-(site list, limits, topics) are mirrored through Chrome's built-in settings
-sync, so all your devices share the same limits. That is Chrome's own
-`chrome.storage.sync` channel — it goes to your Chrome account, if you're
-signed in with sync enabled, and to no one else; there is no ReelRest
-account, no server, no analytics. **Usage counters stay on your computer.**
-Otherwise the extension only stores today's usage and a small learning-card
-cache in your browser's local storage. The only network request it makes
-itself is the daily article-feed refresh from medium.com — skip the topic
-feature and the extension never touches the network. Uninstalling deletes
-all of it.
+Everything stays on your computer — except two things. Your **settings**
+(site list, limits, topics) and **today's usage counters** are mirrored
+through Chrome's built-in sync, so all your devices share the same limits
+and the same running total. That is Chrome's own `chrome.storage.sync`
+channel — it goes to your Chrome account, if you're signed in with sync
+enabled, and to no one else; there is no ReelRest account, no server, no
+analytics. The only network request the extension makes itself is the
+daily article-feed refresh from medium.com — skip the topic feature and
+it never touches the network. Uninstalling deletes all of it.
 
 ---
 

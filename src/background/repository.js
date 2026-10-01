@@ -5,6 +5,7 @@
  */
 
 import { TOPIC_FEEDS, DEFAULT_WARN_MINUTES } from './config.js';
+import { todayKey } from './limit-policy.js';
 
 const KEYS = Object.freeze({
   SETTINGS: 'settings',
@@ -14,9 +15,23 @@ const KEYS = Object.freeze({
   SETTINGS_SYNC: 'settingsSync',
   /** chrome.storage.local key holding {updatedAt} of the last local save */
   SETTINGS_META: 'settingsMeta',
+  /** chrome.storage.local key holding this device's id for usage sync */
+  DEVICE_ID: 'deviceId',
 });
 
+/** Prefix for per-device usage sync items: "<prefix><deviceId>". */
+const USAGE_SYNC_PREFIX = 'usageSync:';
+
+/** Skip a re-push within this window; the 30s tick re-pushes anyway. */
+const USAGE_SYNC_THROTTLE_MS = 10_000;
+/** Remote usage entries not refreshed for this long are ignored. */
+const USAGE_SYNC_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 class UsageRepository {
+  constructor() {
+    /** Timestamp of the last usage push (in-memory throttle). */
+    this.lastUsageSyncAt = 0;
+  }
   /**
    * @returns {Promise<Settings>}
    */
@@ -97,7 +112,7 @@ class UsageRepository {
   }
 
   /**
-   * Atomically upserts one site's usage record.
+   * Atomically upserts one site's usage record, then mirrors it to sync.
    * @param {string} domain
    * @param {(prev: UsageRecord|null) => UsageRecord} updater
    */
@@ -106,6 +121,7 @@ class UsageRepository {
     const all = result[KEYS.USAGE] ?? {};
     all[domain] = updater(all[domain] ?? null);
     await chrome.storage.local.set({ [KEYS.USAGE]: all });
+    await this.pushUsageToSync();
     return all[domain];
   }
 
@@ -113,6 +129,82 @@ class UsageRepository {
   async getAllUsage() {
     const result = await chrome.storage.local.get(KEYS.USAGE);
     return result[KEYS.USAGE] ?? {};
+  }
+
+  /**
+   * This device's identity for usage sync. Persisted locally; a reinstall
+   * gets a new id (its pre-reinstall usage then ages out of aggregation
+   * after a day, see USAGE_SYNC_MAX_AGE_MS).
+   * @returns {Promise<string>}
+   */
+  async getDeviceId() {
+    const result = await chrome.storage.local.get(KEYS.DEVICE_ID);
+    if (result[KEYS.DEVICE_ID]) return result[KEYS.DEVICE_ID];
+    const id = crypto.randomUUID();
+    await chrome.storage.local.set({ [KEYS.DEVICE_ID]: id });
+    return id;
+  }
+
+  /**
+   * Publishes today's local usage to this device's sync item. Throttled
+   * (focus events flush more often than sync write quotas like) and best
+   * effort: on failure the next flush/tick retries.
+   */
+  async pushUsageToSync() {
+    const now = Date.now();
+    if (now - this.lastUsageSyncAt < USAGE_SYNC_THROTTLE_MS) return;
+    this.lastUsageSyncAt = now;
+    const today = todayKey();
+    const usage = await this.getAllUsage();
+    const todayOnly = {};
+    for (const [domain, record] of Object.entries(usage)) {
+      if (record?.date === today) todayOnly[domain] = record;
+    }
+    try {
+      await chrome.storage.sync.set({
+        [USAGE_SYNC_PREFIX + (await this.getDeviceId())]: {
+          updatedAt: now,
+          usage: todayOnly,
+        },
+      });
+    } catch {
+      // Quota or transient failure — local usage is saved; retry next flush.
+    }
+  }
+
+  /**
+   * Today's usage across all devices: this device's records plus the sum
+   * of every other device's same-day records. The user can only scroll
+   * one machine at a time, so summing per-device time is the correct
+   * merge. Remote items older than USAGE_SYNC_MAX_AGE_MS (orphaned by a
+   * reinstall, or an unused device) are ignored.
+   * @returns {Promise<Record<string, UsageRecord>>}
+   */
+  async getAggregatedUsage() {
+    const [own, all] = await Promise.all([
+      this.getAllUsage(),
+      chrome.storage.sync.get(null).catch(() => ({})),
+    ]);
+    const today = todayKey();
+    const ownKey = USAGE_SYNC_PREFIX + (await this.getDeviceId());
+    const aggregated = { ...own };
+    for (const [key, entry] of Object.entries(all)) {
+      if (!key.startsWith(USAGE_SYNC_PREFIX) || key === ownKey) continue;
+      if (Date.now() - (entry?.updatedAt ?? 0) > USAGE_SYNC_MAX_AGE_MS) continue;
+      for (const [domain, record] of Object.entries(entry?.usage ?? {})) {
+        if (record?.date !== today || typeof record.secondsUsed !== 'number') continue;
+        const prev = aggregated[domain];
+        if (prev?.date === today) {
+          aggregated[domain] = {
+            ...prev,
+            secondsUsed: prev.secondsUsed + record.secondsUsed,
+          };
+        } else {
+          aggregated[domain] = { date: today, secondsUsed: record.secondsUsed };
+        }
+      }
+    }
+    return aggregated;
   }
 
   /**
@@ -131,6 +223,7 @@ class UsageRepository {
       return;
     }
     await chrome.storage.local.set({ [KEYS.USAGE]: {}, [KEYS.WARNED]: {} });
+    await this.pushUsageToSync();
   }
 
   /**
